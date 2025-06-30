@@ -1,0 +1,502 @@
+---
+title: "Introducción al Análisis exploratorio"
+subtitle: "Clases - Eva"
+date: "2025-06-18"
+author: "Betsy Cohen"
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-location: left
+    df-print: paged
+    theme: minty
+editor: visual
+---
+
+## Acerca del dataset
+
+El Programa de Educación Olímpica 2018, en Argentina, fue un esfuerzo conjunto entre la Secretaría de Deporte, Educación Física y Recreación de la Nación, el Comité Olímpico Argentino (COA) y el Comité Organizador de los Juegos Olímpicos de la Juventud. Este programa, que culminó en el [Campus 2018,](https://www.argentina.gob.ar/noticias/campus-2018) buscó promover la educación olímpica a través de la integración de deporte, cultura y valores olímpicos. 
+
+El dataset que exploraremos contiene Información sobre el programa de educación olímpica: Recorrido de la Bandera Olímpica, Obras de teatro "valores olímpicos" y Murales.
+
+## Importación incial
+
+En este caso los datos se encuentran en formato csv y los traigo directamente del sitio de datos abiertos de la ciudad
+
+```{r}
+#| label: setup-e-import
+
+library(tidyverse) # para transformación
+library(janitor)
+library(zoo) # Más funciones de fechas (complementa lubridate de tidyverse)
+library(gt) # Hermoseo de una tabla
+library(gtExtras)
+library(DataExplorer)
+
+
+df <- read.csv("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/vicejefatura-de-gobierno/legado-juegos-olimpicos-de-la-juventud-2018/programa-de-educacion-olimpica.csv") %>% 
+  janitor::clean_names()
+
+```
+
+Hay muchas formas de resumir o tener un primer paneo de los datos. La más habitual es el uso de la función `summary()`
+
+```{r}
+#| label: data-summary-1
+
+summary(df)
+
+```
+
+El paquete `skimr`es una alternativa que nos ofrece un resumen ordenado y elegante
+
+```{r}
+#| label: data-summary-2
+
+skimr::skim(df)
+
+
+```
+
+::: callout-important
+### ¿Qué ves en este dataset?
+
+Hacé una lectura de los datos que estamos viendo en este primer resumen.
+
+¿Qué representan los valores `x` e `y?`
+
+¿Qué pasa con la variable fecha?
+
+¿Cómo puedo detectar un caso perdido si mi variable es de tipo `character`?
+:::
+
+### Transformación de variables
+
+Muchas veces las variables no vienen en los formatos en los cuales las necesitamos para trabajar. Pare ello es importante planificar las trensaformaciones que necesitamos hacer:
+
+-   Poner las variables en su formato correspondiente
+-   Volver a revisar valores faltantes o poco utiles
+-   Creare nuevas variables de agrupamiento para responder a las preguntas puntuales
+
+#### Variables categoricas
+
+Antes de convertirlas voy a tratar de salvar cualquier error que tengan
+
+**Uso de `mutate()` con `as.factor()`**
+
+Para convertir a las variables de texto en categóricas y explorar las frecuencias de sus categóras podemos hacerlo una por una con el uso combinado de `mutate()` con \`as.factor()
+
+```{r}
+#| label: ejemplo-factor
+
+df %>% 
+  mutate(proyecto = as.factor(proyecto),
+         nivel_modal = factor(nivel_modal)) %>% 
+  select(proyecto,nivel_modal) %>% 
+  summary()
+
+
+```
+
+Si tenemos muchas variables categóricas podemos ayudarnos con el uso de `across()`el cual aplica una función (en este caso `factor`) a un conjunto de columnas
+
+```{r}
+#| label: ejemplo-across
+
+
+# Como puedo tener muchas variables que sean categóricas creo un vector con todas ellas
+variables_categoricas <-c('proyecto','nivel_modal','dependencia_funcional','tipo_establecimiento')
+
+
+df %>% 
+  mutate( # modificar columnas con mutate()
+    across(c(variables_categoricas),factor) # a lo largo de las variables categóricas 
+    ) %>%
+  select(all_of(variables_categoricas)) %>% 
+  summary()
+  
+
+```
+
+Ahora podemos ver que hay algunas categorías que están escritas de manera diferente, y que efectivamente hay casos perdidos. Vamos a corregirlos
+
+**Corregir errores de con if_else** Podemos hacerlo de manera manual
+
+```{r}
+#| label: ejemplo-ifelse-proyecto
+
+
+df %>%
+  mutate(
+    proyecto = if_else(proyecto == "OBRA DE TEATRO ","OBRA DE TEATRO",proyecto)) %>% 
+  group_by(proyecto) %>% 
+  count()
+
+```
+
+o por ej si vemos que es un error sistemático como que tienen un espacio al final podemos buscar una función que corrija de manera sistemática el error
+
+str_trim() elimina caracteres a la derecho o izquierda o en ambos al rededor de una cadena de caracteres
+
+```{r}
+#| label: transformacion-proyecto
+
+df  <- df %>%
+  mutate(
+    proyecto = str_trim(proyecto, side = "both")  # elimina espacios al principio y al final
+  )
+
+
+df %>%
+  group_by(proyecto) %>%
+  count()
+```
+
+::: callout-tip
+Esta limpieza (str_trim) es buena práctica al principio de cualquier análisis con texto porque esos espacios invisibles suelen sabotear agrupamientos, joins, filtros, etc.
+:::
+
+**Corregir errores de escritura con case_when()**
+
+```{r}
+#| label: frecuencia-original-nivel-modal
+
+df %>% 
+  mutate(nivel_modal = factor(nivel_modal)) %>% 
+  group_by(nivel_modal) %>% 
+  count()
+
+```
+
+Chequeo que son los 0 y 1 y ""
+
+```{r}
+
+#| label: analisis-perdidos-nivel-modal
+
+df %>% 
+  filter(nivel_modal %in% c(0,1,"")) %>% 
+  group_by(tipo_establecimiento,nombre_establecimiento) %>% 
+  count()
+```
+
+Re clasifico con diferentes criterios basados en a exploración
+
+```{r}
+#| label: transformacion-nivel-modal
+
+df <- df %>% 
+  mutate(nivel_modal = case_when(
+    nivel_modal %in% c('PRIMARIA','PRIMARIO','PRIMARIO ESPECIAL')          ~ "PRIMARIA",
+    nivel_modal %in% c('PRIMARIA Y SECUNDARIA', 'PRIMARIO Y SECUNDARIO')   ~ "SECUNDARIA",
+    nivel_modal == 1 & tipo_establecimiento == "EI (ESCUELA INFANTIL)"     ~ "INICIAL",
+    str_starts("JC",tipo_establecimiento)                                 ~ "PRIMARIA",
+    nivel_modal == 0 & tipo_establecimiento == "NO CORRESPONDE"            ~ NA_character_,
+    TRUE ~ "OTRA MODALIDAD")) 
+
+
+# chequeo
+df%>% 
+  group_by(nivel_modal,tipo_establecimiento) %>%
+  count()
+```
+
+ahora las categorias van a ser solamente:
+
+```{r}
+#| label: resultado-nivel-modal
+
+df%>% 
+  group_by(nivel_modal) %>%
+  count()
+```
+
+y los NA son representativos de que esos espacios no pertenecen efectivamente a un espacio educativo
+
+> Este tipo de correciones se puede seguir haciendo con el resto de las variables como dependencia funcional, tipo establecimiemto etc.
+
+Terminamos de estructurar las variables categóricas como tales
+
+```{r}
+df <- df %>% 
+  mutate(across(variables_categoricas,factor))
+```
+
+#### Variables fecha
+
+La variable fecha mezcla diferentes formatos
+
+31-10-16 Jan-15 11/14/2015 06-06-2018
+
+para repararlo vamos a aplicar str_detect y dplyr y lubridate
+
+```{r}
+#| label: transformacion-fecha
+
+df <- df %>%
+  mutate(
+    fecha_estandar = case_when(
+      str_detect(fecha, "^\\d{1,2}/\\d{1,2}/\\d{2,4}$") ~ mdy(fecha),      # 12/15/15 o 5/24/2017
+      str_detect(fecha, "^\\d{1,2}-\\d{1,2}-\\d{4}$") ~ dmy(fecha),        # 6-7-2017 o 30-7-2016
+      str_detect(fecha, "^\\d{1,2}-\\d{1,2}-\\d{2}$") ~ dmy(fecha),        # 31-10-16
+      str_detect(fecha, "^[A-Za-z]{3}-\\d{2}$") ~ my(fecha),               # Jan-15
+      TRUE ~ as.Date(NA)  # si no matchea, lo dejamos en NA
+    )
+  ) 
+
+df %>% 
+  select(fecha,fecha_estandar) %>% 
+  slice_sample(n = 20)
+
+
+```
+
+### Creación de variables auxiliares
+
+Ahora podemos crear variables de mes y año como numero y/o como etiqueta.
+
+```{r}
+df <- df %>% 
+  mutate(anio = year(fecha_estandar),
+         mes_numero = month(fecha_estandar),
+         mes_nombre = month(fecha_estandar,label = TRUE),
+         anio_mes_nombre = as.yearmon(as.character(fecha_estandar)))
+
+df %>% 
+  select(fecha_estandar,anio,mes_numero,mes_nombre,anio_mes_nombre) %>% 
+  slice_sample(n=20)
+```
+
+Y creamos una clave compuesta única por proyecto, lugar y fecha para poder identificar cada proyecto.
+
+```{r}
+df <- df %>% 
+  mutate(id_proyecto = str_c(proyecto, nombre_establecimiento, fecha_estandar, sep = " - "))
+
+
+df %>% select(id_proyecto) %>% head()
+```
+
+eliminamos las variables que son redundantes tras la transformación
+
+```{r}
+df <- df %>% 
+  select(-fecha,mes_ano)
+```
+
+## Análisis exploratorio
+
+¿Qué buscamos en el análisis exploratorio?
+
+-   Ver las frecuencias, estadísticos de resumen como medias, modas, rangos intercuartiles, rangos, etc.
+-   Crear visaulizaciones de datos
+
+La forma en que estructuramos el análisis depende mucho del tipo de trabajo.
+
+-   Formularios /Encuestas/ KIPs predeterminados (análisis ya está guiado un poco \`por las propias preguntas)
+
+-   Fuentes secundarias Formmularios / Registros (Estudios más exploratorios )
+
+-   Exploración como paso intermedio para otra
+
+### Exploración con dplyr
+
+¿Cuál fue el alcance de los proyectos a lo largo de los años?
+
+```{r}
+df %>% 
+  group_by(anio) %>% 
+  summarise(beneficiarios = sum(cantidad_beneficiarios,na.rm = T),
+            instituciones = n_distinct(nombre_establecimiento),
+            suma_proyectos = n_distinct(id_proyecto),
+            alcance_proyecto = round(beneficiarios/ suma_proyectos),
+            alcance_promedio = mean(alcance_proyecto),
+            alcance_mediana = median(cantidad_beneficiarios)
+            ) %>% 
+  select(-alcance_proyecto) %>% 
+  gt() %>% 
+  tab_header(title = "Alcance del Programa de Educación Olímpica 2018") %>% 
+  cols_label(anio = "Año",
+             suma_proyectos = "Proyectos",
+             beneficiarios = "Beneficiarios",
+             instituciones = "Instituciones",
+             alcance_promedio = "Promedio",
+             alcance_mediana = "Mediana") %>% 
+  tab_spanner(label = "Alcance", columns = starts_with("alcance")) %>% 
+  tab_footnote("Fuente: Datos abiertos Gobierno de la Ciudad de Buenos Aires")
+  
+   
+  
+
+```
+
+```{r}
+df %>%
+  group_by(anio, id_proyecto) %>%
+  summarise(beneficiarios = sum(cantidad_beneficiarios, na.rm = TRUE), .groups = "drop") %>%
+  ggplot(aes(x = factor(anio), y = beneficiarios)) +
+  geom_boxplot(fill = "#69b3a2", alpha = 0.7, outlier.color = "red") +
+  labs(
+    title = "Distribución de beneficiarios por proyecto",
+    x = "Año",
+    y = "Cantidad de beneficiarios por proyecto"
+  ) +
+  #geom_jitter(width = 0.2, alpha = 0.3)+
+  theme_minimal()
+
+
+
+  
+```
+
+Los primeros dos años del programa el proyecto se observa una mayor dispersión y que establece el terreno para 2017 que será el año estrella del programa alcanzando a un total de 96.680 beneficiarios y un alcance promedio de 284 beneficiarios ( muy cercana de la mediana 300). 2018 muestra el exito del programa a que a pesar de llegar a muchos menos beneficiarios los poquisimos proyectos que realizo (apenas 40) fueron sumamente eficientes en promedio cada uno de ellos tienen al rededor de 250 beneficiarios. La pandemia termina de apagar el programa que muestra su caída con 500 y 300 eventos de excelente alcance promedio.
+
+Esto debe leerse en función de los tipos de espacio ¿Hubo una desciión de hacer menos eventos en espacios más grandes?
+
+```{r}
+df %>% 
+  tabyl(nivel_modal,anio) %>% 
+  adorn_percentages('col') %>% 
+  adorn_pct_formatting()
+  
+```
+
+😲 Para nada! Los años en los que se trabajo en parques y en el CCK (que podríamos pensar como espacios más grandes) fueron justamente los proimeros dos del programa.
+
+### Exploración con DataExplorer
+
+Le pedimos una primera estructura de los datos (ahora ya limpios)
+
+#### Estructura del dataset
+
+Como a veces podemos tener más de uno...
+
+```{r}
+plot_str(df)
+```
+
+```{r}
+introduce(df)
+```
+
+Nos hace un recuento de la situación general de columnas que estan completas valores perdidos en el dataset
+
+```{r}
+plot_intro(df)
+```
+
+y con plot_missing vemos la situación variable por variable
+
+#### Chequeo de casos perdidos
+
+```{r}
+plot_missing(df)
+```
+
+#### Graficos de barras
+
+Exploramos la distribución de las variables
+
+```{r}
+df_subset_categoricas <- df %>% select(variables_categoricas)
+```
+
+```{r}
+plot_bar(df_subset_categoricas)
+```
+
+Si quisiera hacer un analisis exploratorio cruzando por ej una variable pore otras
+
+```{r}
+
+df_subset_categoricas %>% 
+  plot_bar(by = "proyecto")
+```
+
+#### Histogramas
+
+También podemos pedirle unos histogramas para las variables continuas
+
+```{r}
+plot_histogram(df)
+```
+
+Analisis de correlaciones
+
+La correlacion indica la fuerza y la dirección de la relación lineal entre dos variables. En otras palabras, nos dice si, cuando una variable cambia, la otra tiende a cambiar en la misma dirección (correlación positiva) o en dirección opuesta (correlación negativa)
+
+Por ej en el caso `anio` vemos que tiene una correlación de 0.47 con la cantidad de beneficiarios pero no nos indica aun con que anio (para eso tenemos que hacer un análisis dfesgregado pore cada anio) Pero si desagregamos ese anio como categórica podemos ir viendo como pierde fuerza a segun la categoría.
+
+```{r}
+df_subset_correlation <- df %>%
+  mutate(anio_categorica = as.factor(anio)) %>%  
+  select(proyecto,nivel_modal,dependencia_funcional,cantidad_beneficiarios,anio,anio_categorica)
+
+plot_correlation(na.omit(df_subset_correlation), maxcat = 10L) # le pido que omita los na y que el máximo de categorias a analizar sea 10
+```
+
+También podemos solamente trabajarlo con variables continuas, o solo las discretas seteando el parámetro type
+
+```{r}
+plot_correlation(na.omit(df_subset_correlation), maxcat = 10L,
+                 type = "discrete") # me quedo solo con las discretas
+```
+
+Como es esta relación entre cantidad de beneficiarios y años
+
+```{r}
+ggplot(data = df) +
+    geom_col(aes(x = anio, y = cantidad_beneficiarios, color = anio)) +
+    labs(title = "Beneficiarios por año",
+         x = "Año",
+         y = "Beneficiarios") 
+```
+
+La variable año es la unica que explica?
+
+```{r}
+lm_1 <- lm(cantidad_beneficiarios ~ anio_categorica, data = df_subset_correlation)
+
+summary(lm_1)
+
+```
+
+Nuestro modelo solo está explicando el 28.4% de la variabilidad (Adjusted R-squared) con un error estandar alto de 93.32.
+
+El intercepto nos muestra la preducció para la categoría de base (el 2016) y vemos que
+
+2017--2021 muestran aumentos importantes respecto al año base.
+
+2016 no cambió mucho (quizás fue un año tranqui o con menor despliegue).
+
+El modelo captura una tendencia, pero no tiene contexto: no distingue si el aumento se debe a los proyectos, a cambios institucionales, ni al tipo de población.
+
+Agregamos entonces más variables para ver la predicción sobre la cantidad de beneficiarios en función de
+
+-   Año como variable categórica
+
+-   Tipo de proyecto
+
+-   Nivel modal
+
+-   Dependencia funcional (privada/pública)
+
+```{r}
+lm_2 <- lm(cantidad_beneficiarios ~ anio_categorica + proyecto + nivel_modal + dependencia_funcional, data = df_subset_correlation)
+
+summary(lm_2)
+```
+
+Aca ya vemos como mejora el modelo en general (52% de la variabilidad). Respecto de los años 2017 y 2018 el programa estalla. Tambien vemos cómo algunas actividades empiezan a rendir más (Teatro sobre todo)
+
+Los proyectos artísticos (especialmente el teatro) convocan multitudes, y eso es visible incluso en modelos estadísticos. Los años 2017 y 2020 tuvieron momentum para el programa. La escuela privada parece tener más poder de convocatoria. Pero ojo, hay bastante que aún no se explica ---este modelo explica bien, pero no todo.
+
+#### Un reporte inicial
+
+```{r}
+
+```
+
+## Más ejemplos
+
+https://datosgcba.github.io/curso-datos/trabajos/asistentes_ctba.html

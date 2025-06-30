@@ -1,0 +1,95 @@
+---
+title: "Instalando R y RStudio"
+author: "Betsy Cohen"
+format: 
+  html: 
+    theme: minty
+execute:
+  echo: true
+df-print: kable
+---
+## ¿R y RStudio? ¿No son lo mismo?
+
+R y RStudio son como el motor y la carrocería en un auto. R es un lenguaje de programación, mientras que RStudio es el programa desde el cual vamos a utilizar dicho lenguaje Para tener el auto completo necesitamos instalar ambos.
+
+Si ya tenés descargados ambos programas, te recomiendo actualizarlos siguiendo los mismos pasos. R cambia todo el tiempo, por lo que resulta muy importante ir actualizando periódicamente.
+
+**¡Vamos a hacerlo!.**
+
+## Instalando R y RStudio {.smaller}
+
+-   Dirigite a la siguiente página -\> https://posit.co/downloads/
+
+-   Bajá hasta encontrar lo que se muestra en la imágen y hace click en "download" para descargar la versión gratuita (es la que usa todo el mundo y seguro tendrá todo lo que precisás)
+
+![](images/instalar-r-1.png){width="329"}
+
+# Instalando R {.smaller}
+
+Seguiremos los pasos que nos indica la nueva página. En primer lugar, descargar R. Al hacer click, nos dirigirá a la página oficial de R.
+
+![](images/instalar-r-2.png){width="300"}
+
+## Instalando R {.smaller}
+
+La página que vas a ver es un poco más rústica que la anterior. Pero estás en el buen camino. Hacé click en tu sistema operativo (Linux, macOS, Windows).
+
+![](images/instalar-r-3.png){width="500"}
+
+## Instalando R en Windows {.smaller}
+
+Si tu sistema operativo es windows, hacé click en "Install R for the first time"
+
+![](images/instalar-r-4.png){width="626"}
+
+y luego en "Download R.... for Windows".
+
+![](images/instalar-r-5.png){width="624"}
+
+La versión de R (los numeritos) puede cambiar, pero la pinta general de la página es la que ves en las imágenes.
+
+## Instalando R en Windows
+
+Luego andá a la carpeta donde lo hayas descargado y ejecutalo como administrador
+
+![](images/instalar-r-6.png){width="316"}
+
+Seguí las instrucciones de instalación y después seguí a la sección Instalando RSTudio de este documento
+
+## Instalando R en Linux
+
+En el caso de que tengas Linux, elegí tu sistema operativo y seguí las instrucciones que te da la página. Luego, volvé al punto 5 de este documento
+
+![](images/instalar-r-7.png)
+
+## Instalando R en Mac
+
+En el caso de Mac, mirate este video:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/OW66f1sBQOc?si=_95hP0Cs66Oc0sAC" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
+
+</iframe>
+
+# Instalando R Studio {.smaller}
+
+::: columns
+::: {.column width="50%"}
+Ahora que ya instalamos el motor de nuestro auto (el lenguaje R) vamos a ponerle la carrocería, es decir **RStudio** Volvemos a la página de Posit RStudio (https://posit.co/downloads/) y hacé click en el botón de descarga del Step 2. En el caso de Windows, te recomiendo nuevamente instalarlo en modo administrador.
+:::
+
+::: {.column width="50%"}
+![](images/instalar-r-9.png){width="605"}
+:::
+:::
+
+## Instalando R Studio {.smaller}
+
+Si tenés otro sistema operativo, más abajo hay otras opciones de instaladores.
+
+![](images/instalar-r-8.png){width="372"}
+
+## It's a rap!
+
+Con esto ya deberíamos tener R y RStudio en nuestra compu
+
+![](https://media.tenor.com/-JIgHIMq1u8AAAAM/cool.gif){fig-align="center" width="459"}

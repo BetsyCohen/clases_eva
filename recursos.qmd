@@ -1,0 +1,13 @@
+---
+title: "Recursos"
+---
+
+En esta sección vamos a reunir varios recursos que trabajamos a lo largo de las clases
+
+## 📦Paquetes y librerías
+
+| Paquete                                                                              | Para qué sirve                                                                                                                                                                                                            | Documentación                                |
+|--------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------|
+| ![](https://docs.ropensci.org/skimr/reference/figures/logo.png){width="85"} **skim** | Nos proporciona estadísticos de resumen para revisar y entender rápidamente las características de nuestra base. La función que más vamos a usar es `skimr()` para ver estadisticos de resumen de un data set             | <https://docs.ropensci.org/skimr/index.html> |
+| ![](https://dplyr.tidyverse.org/logo.png){width="85"} **dplyr**                      | Es la librería estrella de tydyverse para manipulación de datos básica. A través de sus funciones `mutate() group_by() select() filter() summarise(`) y `arrange()` podemos construir tablas y manipular datos facilmente | <https://dplyr.tidyverse.org/>               |
+|                                                                                      |                                                                                                                                                                                                                           |                                              |

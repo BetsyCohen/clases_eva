@@ -1,0 +1,7 @@
+---
+title: "Clases R - Eva Arias"
+---
+
+Este es el sitio de mis clases particulares de R.
+
+![](https://res.cloudinary.com/jerrick/image/upload/v1724150709/66c473b47690ad001eb0d95d.jpg){fig-align="center"}

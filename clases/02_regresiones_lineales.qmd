@@ -1,0 +1,321 @@
+---
+title: "Regresiones lineales"
+author: "Betsy Cohen"
+format: 
+  html:
+    toc: true
+    embed-resources: true
+    theme: minty
+editor: visual
+---
+
+## Modelado
+
+Un modelo siempre es una reconstrucción simplificada de como está funcionando un proceso. En data siempre vamos a tener al menos:
+
+Una variable resultante o la **depenediente**
+
+Una o varias variables predictoras o **explicativas**
+
+Identificarlo no siempre es fácil por eso siempre esta bueno formularlo como pregunta.
+
+El modelado de datos puede ser utilizado para dos propósitos:
+
+1.  **Predecir** el valor de una variable dependiente en base a valores conocidos de las variables predictoras: **cómo** las variables interactúan entre sí o **por qué** lo hacen.
+
+2.  **Explicar** la relación entre una variable dependiente y todas las demás (explicativas) para ver si es una relación significativa o no.
+
+## Elige tu propia aventura
+
+Cuando tengamos que analizar una relación entre una variable dependiente métrica y un conjunto de variables que pueden o no ser métricas.
+
+Por ej. ¿En qué medida influyen las variables de interés de nuestro dataset en el Producto Bruto Geográfico?
+
+![](images/esquema_tecnicas_dependencia_lm.png)
+
+## Limpieza antes de arrancar
+
+Para poder hacer cualquier analisis antes de arrancar asumimos que los datos ya fueron trabajados respecto de su preparación básica es decir:
+
+-   tratamiento de casos nulos, ver si los perdidos tienen algún patron (con por ej `mice::mdpattern()`)
+-   trabajo con outliers
+-   eliminación de casos duplicados
+-   variables que contienen información duplicadas
+-   escalado de variables que requieran el valor
+
+## Regresión lineal simple
+
+Arranquemos por entender la expresión más simple de la regresión lineal: la regresión lineal simple.
+
+Tenemos nuestra variable y, numérica, y una sola variable predictora x, que puede ser numérica o categórica.
+
+Vamos a ponerlo en práctica con nuestros datos de juguete.
+
+```{r}
+# Cargamos las librerías necesarias
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(broom)
+library(car)
+library(lmtest)
+library(ggplot2)
+```
+
+```{r}
+# Leemos la base desde Excel
+df_pbg <- read_excel("data_raw/R Base Betsy.xlsx", sheet = "revisadoTablaseparaluminaria") %>% 
+  clean_names()
+
+
+# Seleccionamos las columnas de interés (al menos las que vamos a usar al principio)
+df_pbg_subset <- df_pbg %>%
+  select(ano_firma,cliente,tipo_de_bien_agrupado,montos_a_oct_24,montos_en_millones_a_oct_24,partido_politico,periodo_de_gestion,pbg_valores_2023_constantes,impuestos,valor_agregado_bruto,total_productores_de_bienes,total_productores_de_servicios)
+
+# observamos las variables
+str(df_pbg_subset)
+
+```
+
+chequeamos su distribución y si hay casos faltantes
+
+```{r}
+df_pbg_subset %>% 
+  mutate(across(where(is.character), as.factor)) %>% 
+  summary()
+```
+
+> Pregunta central: ¿En qué medida el monto invertido por municipio (montos_a_oct_24) influye sobre el Producto Bruto Geográfico a precios constantes 2023 (pbg_valores_2023_constantes)?
+
+**Variable dependiente:** Producto Bruto Geográfico a precios constantes 2023
+
+**Variables independientes** : Montos a Oct 2024
+
+Hipótesis nula (H₀): El monto no tiene efecto significativo sobre el PBG. Hipótesis alternativa (H₁): El monto tiene efecto significativo sobre el PBG.
+
+```{r}
+df_pbg_subset %>% 
+  ggplot()+
+  geom_point(aes(x = montos_en_millones_a_oct_24, y = pbg_valores_2023_constantes))+
+  labs(title = "Correlación entre Montos invertidos por el Municipio y el Producto Bruto Geográfico",
+       x = "Montos",
+       y = "PBG")
+```
+
+Vamos a medir la correlación entre ambas variables
+
+```{r}
+cor(df_pbg_subset$montos_en_millones_a_oct_24,df_pbg_subset$pbg_valores_2023_constantes)
+```
+
+**¿A partir de qué valor consideramos que existe una correlación apreciable?**
+
+-   de 0,7 a 1: de fuerte a total
+-   de 0,6 a 0,5: de moderada a fuerte
+-   de 0,4 a 0,3: de débil a moderada
+-   menor a 0,3: de nula a débil
+
+En principio la relación para esta muestra no parece ser lineal. Para corroborarlo vamos a hacer un modelo de regresión lineal simple
+
+```{r}
+# Creamos el modelo
+modelo_1 <- lm(data = df_pbg_subset, pbg_valores_2023_constantes ~ montos_en_millones_a_oct_24)
+
+# vemos los resultados
+modelo_1
+```
+
+**¿Y esto cómo lo leo?**
+
+**Si el modelo fuera lineal** (que no lo es y ahora vamos a terminar de ver cómo comprobarlo) podríamos decir que por cada peso adicional invertido en el municipio (medido en montos_a_oct_24), se estima un incremento de \$7.48 en el PBG a precios constantes.
+
+El `intercetp` nos dice en donde se están interceptando las variables y básicamente nos sirve (o le sirve a R) para trazar esa linea de predicción para los datos que justamente no aparecen allí.
+
+y = a + b × x
+
+A cada punto en **x** le corresponde un valor en **y** que se obtiene multiplicando a **x** por la pendiente, **b** , y sumando la intersección, **a**.
+
+A esto lo llamamos "intersección" o también "ordenada al origen" porque **es el valor donde la recta intersecta con el eje de las y**: cuando x vale 0, la fórmula nos da y = b.
+
+Volviendo a nuestro ejemplo y para de paso aprender un truquito de visualización de con ggplot
+
+```{r}
+ggplot(data = df_pbg_subset) + 
+    geom_point(aes(x = montos_en_millones_a_oct_24  , y = pbg_valores_2023_constantes)) +
+    labs(title = "Correlación entre montos a oct 2024 y PBG constanate",
+       x = "Montos",
+       y = "PBG",
+       caption = "con línea de regresión") +
+    geom_smooth(aes(x = montos_en_millones_a_oct_24, y = pbg_valores_2023_constantes), method = "lm")
+```
+
+### ¿Qué tiene que cumplir nuestro modelo para ser lineal?
+
+1)  Normalidad de residuos
+
+Las predicciones te informan los patrones que el modelo captura y los residuos te dicen lo que el modelo ignora.
+
+Los residuos son justamente esas distancias entre lo observado y los valores predichos que calculamos anteriormente.
+
+Cuando los residuos son pequeños decimos que nuestro modelo se ajusta bien a los datos observados y sino es tiempo de buscar otro modelo que represente mejor esta relación.
+
+Realizamos un gráfico qq para comprobar la linealidad de los residuos respecto de los quantiles
+
+```{r}
+olsrr::ols_plot_resid_qq(modelo_1)
+```
+
+Para evaluar esta normalidad tenemos el test de Shapiro-Wilk y Se plantea como hipótesis nula que una muestra proviene de una población normalmente distribuida.
+
+Siendo la hipótesis nula que la población está distribuida normalmente, si el p-valor es menor a alfa (nivel de significancia que por lo general es 0,05) entonces la hipótesis nula es rechazada (se concluye que los datos no vienen de una distribución normal). Si el p-valor es mayor a alfa, se concluye que no se puede rechazar dicha hipótesis.
+
+```{r}
+# Normalidad de residuos
+shapiro.test(residuals(modelo_1))
+```
+
+2)  Heterocedasticidad
+
+Debemos constatar es que la varianza de los residuos se distribuyen homogéneamente y tienen media 0 (homoscedasticidad) Para que se cumpla el supuesto de homocedasticidad de los errores se necesita que los puntos se ubiquen como una nube de puntos sin ningún patrón claro. Cualquier patrón que se observe es evidencia de que no se cumple el supuesto de homocedasticidad de los errores.
+
+![](https://fhernanb.github.io/libro_regresion/images/patrones_ei_versus_mui.png)
+
+```{r}
+olsrr::ols_plot_resid_stud_fit(modelo_1)
+```
+
+En nuestra gráfica podemos ver a excepción del caso 16 la mayoría de los residuos se distribuyen de manera homogena entre -2 y 2. El caso 16 requería un trabajo de tratamiento como outlier.
+
+```{r}
+lmtest::bptest(modelo_1)
+```
+
+3)  Multicolinealidad
+
+La multicolinealidad tiene sentido en modelos donde interviene más de dos variables basicamente es la correlación directa entre las dos variables (por ej. una variable deriva de la otra como en el caso de monto en millones y montos)
+
+Para medirla se usa la función vif (tolerance and variance inflation factors).
+
+Los factores de inflación de la varianza miden la inflación de las varianzas de las estimaciones de los parámetros debido a las colineales existentes entre los predictores. Es una medida de la varianza del coeficiente de regresión estimado. se infla por la existencia de correlación entre las variables predictoras del modelo. Un VIF de 1 significa que no hay correlación entre el k-ésimo predictor y las variables predictoras restantes, y, por lo tanto, la varianza de No está inflado en absoluto. La regla general es que los VIF superiores a 4 justifican una investigación más profunda, mientras que los VIF superiores a 10 indican una multicolinealidad grave que requiere corrección.
+
+```{r}
+#olsrr::ols_vif_tol(modelo_1)
+```
+
+::: callout-note
+#### Paquetes para evaluar tu modelo
+
+Existen diferentes paquetes que te permiten evaluar estos puntos uno de ellos es `performance`
+:::
+
+## Regresión múltiple
+
+En la regresión lineal múltiple vamos a incorporar una cantidad arbitraria de variables al modelo, buscando representar las múltiples dinámicas que inciden en el fenómeno estudiado. Vamos a empezar con las variables cuanti y después vamos a ver un ejemplo de cómo incorporar las cuali.
+
+```{r}
+glimpse(df_pbg_subset)
+```
+
+Vamos a sumar a nuestro modelo además de montos_a_oct_24 el valor_agregado_bruto, total_productores_de_bienes y total_productores_de_servicios, De paso vamos a ver un clásico caso de colinealidad
+
+```{r}
+modelo_2 <- lm(pbg_valores_2023_constantes ~ montos_a_oct_24 + valor_agregado_bruto +
+   total_productores_de_bienes + total_productores_de_servicios,
+   data = df_pbg_subset)
+summary(modelo_2)
+```
+
+total_productores_de_servicios Es probable que valor_agregado_bruto sea la suma de total_productores_de_bienes y total_productores_de_servicios. Vamos a chequear:
+
+```{r}
+df_pbg_subset$valor_agregado_bruto == 
+    df_pbg_subset$total_productores_de_bienes + df_pbg_subset$total_productores_de_servicios
+```
+
+Esto suguiere que no deberíamos incluirlo en nuestro modelo así que vamos de nuevo pero sin esta variable
+
+```{r}
+modelo_2 <- lm(pbg_valores_2023_constantes ~ montos_a_oct_24 +  valor_agregado_bruto, data = df_pbg_subset)
+summary(modelo_2)
+
+```
+
+El resumen incluye los parámetros que definieron al modelo, los valores por cuartil de los residuos, y una tabla con variables numéricas
+
+`Estimate` nos dice el el "efecto" estimado de cada variable explicativa sobre la dependiente (los famosos coeficientes que vimos con la regresion lineal simple)
+
+El valor p si vale menos de 0,5, se considera que la capacidad de predicción de la variable asociada es significativa. R nos da un ayudin (que es muy similar a spss) en el que "contamos estrellitas". Son la forma de R de decirnos cuales son las variables explicativas que muestran una relación "estadísticamente significativa" con nuestra variable dependiente. Cuanto más bajo el valor p, más significativa es la relación y más estrellitas aparecen.
+
+Nuestro R Cuadrado es super alto puede ser que el pbg_valores_2023_constantes este correlacionado o en espejo con valor_agregado_bruto?
+
+```{r}
+cor(df_pbg_subset$pbg_valores_2023_constantes, df_pbg_subset$valor_agregado_bruto)
+```
+
+Pareciera que sí. Sin embargo a pesar de ello la tolerancia se mantiene por debajo de 10 (que es lo reciomendable)
+
+```{r}
+olsrr::ols_vif_tol(modelo_2)
+```
+
+El tema es que valor_agregado_bruto está prácticamente determinando el PBG porque lo compone o se construye con él.
+
+Una solución aquí sería poder sumar otras variables cuanti como por ej.
+
+-   tazas de empleo registrado
+
+-   exportaciones/importaciones
+
+-   inversión en infraestructura
+
+-   cantidad impuestos recaudados
+
+## Metiendo variables cuali
+
+Supongamos que queremos saber si hay una relación entre los periodos de gesytion y el pbg
+
+```{r}
+ggplot(data = df_pbg_subset) +
+    geom_point(aes(x = periodo_de_gestion, y = pbg_valores_2023_constantes, color = periodo_de_gestion)) +
+    labs(title = "PBG por cliente",
+         x = "Periodo de gestión",
+         y = "PBG") 
+```
+
+Ya por este gráfico podemos ver que no todos los clientes tienen el mismo PBG. Vamos a "cuantificar" esta relación
+
+```{r}
+modelo_3 <- lm(pbg_valores_2023_constantes ~ periodo_de_gestion, data = df_pbg_subset)
+
+modelo_3
+```
+
+¿Qué hizo R? tomó cada una de las categorías que tenía la variable periodo_de_gestion, la ordenó y tomó periodo_de_gestionPeríodo 2020-2023 como línea de base El primer coeficiente de la regresión (la intersección) es el promedio de PBG en el Período 2020-2023. Para cada una de las categorías restantes, el coeficiente representa la diferencia respecto al Período 2020-2023 del PBG.
+
+¿Entonces como lo interpretamos?
+
+El PBG promedio del período 2024--2027 es -\$5.07 millones en valores constantes menor al del período base (2020--2023), en promedio.
+
+```{r}
+summary(modelo_3)
+```
+
+O visto de otra forma
+
+(Intercept): 5.647e+09 → El PBG promedio (a valores constantes 2023) en el Período 2016--2019 fue \$5.647 mil millones.
+
+Período 2020--2023: -4.917e+09 → En este período, el PBG promedio fue \$4.917 mil millones menor que en 2016--2019.
+
+Período 2024--2027: -5.071e+09 → En este período, el PBG promedio fue \$5.071 mil millones menor que en 2016--2019.
+
+Y si lo quisieramos poner en un informe podríamos poner algo asi como
+
+> El modelo muestra una caída promedio significativa del PBG a valores constantes durante los períodos 2020--2023 y 2024--2027, en comparación con 2016--2019. La magnitud de la caída ronda los \$5 mil millones en ambos casos, lo que indica un retroceso persistente en la actividad económica medida por este indicador.
+
+## Bibliografía de consulta
+
+-   [Antonio Vazquez Brust - Capítulo 5 Modelado estadístico en "Ciencia de Datos para Gente Sociable"](https://bitsandbricks.github.io/ciencia_de_datos_gente_sociable/modelado-estad%C3%ADstico.html)
+
+-   [Francisco Urdinez y Andrés Cruz Labrín (Editores) - Capítulo 5 Modelos lineales - en "AnalizaR Datos Políticos"](https://arcruz0.github.io/libroadp/linear.html)
+
+-   [Análisis Multivariante aplicado con R Joaquin Aldas Ezequiel Uriel](https://drive.google.com/file/d/16n2f5edlOkuPqb5EFbu76Th5jfKMx9lT/view?usp=sharing)
