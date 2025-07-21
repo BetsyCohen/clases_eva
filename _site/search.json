@@ -187,5 +187,68 @@
     "title": "Recursos",
     "section": "📦Paquetes y librerías",
     "text": "📦Paquetes y librerías\n\n\n\nPaquete\nPara qué sirve\nDocumentación\n\n\n\n\n skim\nNos proporciona estadísticos de resumen para revisar y entender rápidamente las características de nuestra base. La función que más vamos a usar es skimr() para ver estadisticos de resumen de un data set\nhttps://docs.ropensci.org/skimr/index.html\n\n\n dplyr\nEs la librería estrella de tydyverse para manipulación de datos básica. A través de sus funciones mutate() group_by() select() filter() summarise() y arrange() podemos construir tablas y manipular datos facilmente\nhttps://dplyr.tidyverse.org/\n\n\n\nJanitor nos ofrece algunas funciones que facilitan la diaria como clean_names() para emprolijar los nombres de nuestras variables, get_dupes() obtener listados de duplicados, u obtener tablas de frecuencia con tabyl()\nJanitor es un portero buena onda 😎\nhttps://sfirke.github.io/janitor/index.html\n\n\n\nData explorer nos ayuda a automatizar el proceso de exploración inicial, con funciones como introduce() de información básica visualización de missing plot_missing(), de correlación plot_correlation() e incluso crear un reporte inicial create_report()\nhttps://boxuancui.github.io/DataExplorer/\n\n\n\nLindo es mejor que feo y posit lo sabe por eso con la librería gt() vas a poder crear tablas que se vean bonitas y profesionales. Con una lógica de gramática de tablas (guiño a ggplot) que las disecciona en diferentes partes podes retocar desde el título hasta la fuennte\nhttps://gt.rstudio.com/"
+  },
+  {
+    "objectID": "clases/03_clusters.html",
+    "href": "clases/03_clusters.html",
+    "title": "Clusters",
+    "section": "",
+    "text": "Los algoritmos de machine learning se suelen clasificar en dos grupos, por un lado se encuentran los algoritmos supervisados que aplican lo que se ha aprendido con los datos históricos para sacar conclusiones sobre nuevos datos y por otro lado se encuentran los algoritmos no supervisados que pueden extraer inferencias de conjuntos de datos.\nLos algoritmos Supervisados: Se clasifican en problemas de regresión y clasificación, tenemos que pensar que lo que se fundamenta en crear modelos con información histórica para luego poder predecir en el futuro; por ej. aprender a clasificar correos como spam, donde ya sabemos qué correos son spam y cuáles no.\nPor su parte los Supervisados: son aquellos donde no se tiene variable respuesta. El objetivo es encontrar patrones / asociaciones ocultas a prirmera vista o sobre las cuales por ahí tenemos alguna hipótesis que ya veniamos trabajando en el análisis exploratorio. Por ejemplo, agrupar clientes con comportamientos de compra similares sin saber de antemano cuántos grupos existen.\nTambién existe un tercer tipo de algoritmo que llamamos Aprendizaje por refuerzo: y que funciona con un mecanismo de recompensa. Un agente (la máquina) interactúa con el entorno y prueba una variedad de métodos para alcanzar un resultado. El agente es recompensado o castigado en función de las acciones que realiza. Un ejemplo clásico es el entrenamiento de robots o sistemas de juegos para que aprendan a maximizar una recompensa."
+  },
+  {
+    "objectID": "clases/03_clusters.html#tipos-de-algoritmos-de-ml",
+    "href": "clases/03_clusters.html#tipos-de-algoritmos-de-ml",
+    "title": "Clusters",
+    "section": "",
+    "text": "Los algoritmos de machine learning se suelen clasificar en dos grupos, por un lado se encuentran los algoritmos supervisados que aplican lo que se ha aprendido con los datos históricos para sacar conclusiones sobre nuevos datos y por otro lado se encuentran los algoritmos no supervisados que pueden extraer inferencias de conjuntos de datos.\nLos algoritmos Supervisados: Se clasifican en problemas de regresión y clasificación, tenemos que pensar que lo que se fundamenta en crear modelos con información histórica para luego poder predecir en el futuro; por ej. aprender a clasificar correos como spam, donde ya sabemos qué correos son spam y cuáles no.\nPor su parte los Supervisados: son aquellos donde no se tiene variable respuesta. El objetivo es encontrar patrones / asociaciones ocultas a prirmera vista o sobre las cuales por ahí tenemos alguna hipótesis que ya veniamos trabajando en el análisis exploratorio. Por ejemplo, agrupar clientes con comportamientos de compra similares sin saber de antemano cuántos grupos existen.\nTambién existe un tercer tipo de algoritmo que llamamos Aprendizaje por refuerzo: y que funciona con un mecanismo de recompensa. Un agente (la máquina) interactúa con el entorno y prueba una variedad de métodos para alcanzar un resultado. El agente es recompensado o castigado en función de las acciones que realiza. Un ejemplo clásico es el entrenamiento de robots o sistemas de juegos para que aprendan a maximizar una recompensa."
+  },
+  {
+    "objectID": "clases/03_clusters.html#aprendizaje-supervisado-problemas-de-clasificación-y-regresión",
+    "href": "clases/03_clusters.html#aprendizaje-supervisado-problemas-de-clasificación-y-regresión",
+    "title": "Clusters",
+    "section": "Aprendizaje supervisado: Problemas de clasificación y regresión",
+    "text": "Aprendizaje supervisado: Problemas de clasificación y regresión\n“Dentro del aprendizaje supervisado, como mencionamos, tenemos dos tipos principales de problemas:\n\nProblemas de clasificación: Necesitan predecir la clase más probable de un elemento, en función de un conjunto de variables de entrada. Para este tipo de algoritmos, la variable target o respuesta es una variable de tipo categórica. Por ejemplo, clasificar un correo como ‘spam’ o ‘no spam’, o determinar si la solicitud de un crédito será ‘aprobada’ o ‘rechazada’.\nProblemas de regresión: En vez de predecir categorías, predicen valores numéricos. Es decir, la variable target en un problema de regresión es de tipo cuantitativa. Por ejemplo, predecir el precio de una casa en función de sus características, o estimar las ventas futuras de un producto.”\n\n\nRegresión lineal\nUn ejemplo que ya habíamos visto son las regresiones lineales\n\n\nBusca una ecuación lineal que describe mejor la correlación de la variable independiente con la variable dependiente\nMinimiza la diferencia entre los valores reales, por ejemplo, los precios de las casas, y los valores que predice la línea. En otras palabras, intenta encontrar una línea que represente la tendencia general en los datos"
+  },
+  {
+    "objectID": "clases/03_clusters.html#aprendizaje-no-supervisado-clusters",
+    "href": "clases/03_clusters.html#aprendizaje-no-supervisado-clusters",
+    "title": "Clusters",
+    "section": "Aprendizaje no supervisado: clusters",
+    "text": "Aprendizaje no supervisado: clusters\n📐 Algunas ideas clave:\nDistancia: ¿Qué tan parecidos son los casos?\nCentroide: Punto medio del grupo.\nNúmero de clusters (K): cuántos grupos querés encontrar.\nMaxima variabilidad inter-cluster mínima variabiliidad intra-cluster"
+  },
+  {
+    "objectID": "clases/03_clusters.html#manos-a-la-obra",
+    "href": "clases/03_clusters.html#manos-a-la-obra",
+    "title": "Clusters",
+    "section": "Manos a la obra",
+    "text": "Manos a la obra\nArrancamos por setear los paquetes que vamos a usar:\n\nlibrary(tidyverse)    # manipulación y visualización\nlibrary(cluster)      # clustering base\nlibrary(factoextra)   # visualizaciones\n\nCreamos un dataset simple\n\nset.seed(123)\ndata &lt;- tibble(\n  edad = c(rnorm(20, 25, 3), rnorm(20, 50, 3)),\n  ingresos = c(rnorm(20, 1000, 200), rnorm(20, 5000, 300))\n)\n\nY le pegamos una breve mirada a los datos\n\nggplot(data, aes(x = edad, y = ingresos)) +\n  geom_point() +\n  labs(title = \"Personas según edad e ingresos\")\n\n\n\n\n\n\n\n\nAplicamos K-means con 2 clusters\n\nmodelo &lt;- kmeans(data, centers = 2, nstart = 25) \ndata$cluster &lt;- as.factor(modelo$cluster)\n\n🎨 Visualizamos los grupos\n\nggplot(data, aes(x = edad, y = ingresos, color = cluster)) +\n  geom_point(size = 3) +\n  labs(title = \"Clusters encontrados\")"
+  },
+  {
+    "objectID": "clases/03_clusters.html#complicando-la-cosa-un-poco",
+    "href": "clases/03_clusters.html#complicando-la-cosa-un-poco",
+    "title": "Clusters",
+    "section": "Complicando la cosa un poco",
+    "text": "Complicando la cosa un poco\nEste ejemplo es bastante sencillo vamos a levantar un poquito la vara\n\nset.seed(123)\n\nclientes &lt;- tibble(\n  edad = c(rnorm(50, 25, 5), rnorm(50, 40, 4), rnorm(50, 60, 6)),\n  gasto_comida = c(rnorm(50, 200, 30), rnorm(50, 350, 40), rnorm(50, 150, 20)),\n  gasto_entretenimiento = c(rnorm(50, 80, 15), rnorm(50, 120, 20), rnorm(50, 60, 10))\n)\n\n\nggplot(clientes, aes(x = gasto_comida, y = gasto_entretenimiento)) +\n  geom_point() +\n  labs(title = \"Gasto en comida vs entretenimiento\")\n\n\n\n\n\n\n\n\n📏 Escalado (muy importante si las variables tienen distintas escalas)\n\nclientes_scaled &lt;- clientes %&gt;% \n  scale() %&gt;% \n  as_tibble()\n\n¿Cuántos clusters? Método del codo\nBuscamos el punto donde la curva “dobla” → ahí está el número óptimo de clusters.\n\nfviz_nbclust(clientes_scaled, kmeans, method = \"wss\") +\n  labs(title = \"Método del codo para elegir número de clusters\")\n\n\n\n\n\n\n\n\nAplicamos K-means (supongamos 3 clusters)\n\nk3 &lt;- kmeans(clientes_scaled, centers = 3, nstart = 25)\n\nclientes_clustered &lt;- clientes %&gt;%\n  mutate(cluster = as.factor(k3$cluster))\n\nAhora lo visualizamos\n\nggplot(clientes_clustered, aes(x = gasto_comida, y = gasto_entretenimiento, color = cluster)) +\n  geom_point(size = 3) +\n  labs(title = \"Clusters de clientes según gasto\") +\n  theme_minimal()"
+  },
+  {
+    "objectID": "clases/03_clusters.html#para-pensar",
+    "href": "clases/03_clusters.html#para-pensar",
+    "title": "Clusters",
+    "section": "Para pensar",
+    "text": "Para pensar\nPreguntas para pensar:\n¿Qué diferencias hay entre los grupos?\n¿Cómo podría usar una empresa esta segmentación?\n¿Qué pasaría si incluimos más variables?"
+  },
+  {
+    "objectID": "clases/03_clusters.html#cuándo-tiene-sentido-aplicar-clustering",
+    "href": "clases/03_clusters.html#cuándo-tiene-sentido-aplicar-clustering",
+    "title": "Clusters",
+    "section": "¿Cuándo tiene sentido aplicar clustering?",
+    "text": "¿Cuándo tiene sentido aplicar clustering?\n\nCuando tenemos variables numéricas o fácilmente comparables\nEdad, ingresos, precios, ratings.\nTambién pueden usarse variables categóricas, pero requieren técnicas específicas (y más avanzadas).\nCuando hay sospecha de que hay subgrupos ocultos\nNo están explícitos, pero queremos descubrirlos.\nEj: “no sabemos qué tipos de usuarios hay, pero intuimos que no son todos iguales”.\nCuando hay suficientes observaciones\nCon 5 o 10 filas no tiene sentido.\nRecomendación mínima: al menos 30-40 casos.\nCuando las variables están en escalas comparables\nEdad y salarios pueden tener rangos muy distintos → hay que escalar o normalizar."
+  },
+  {
+    "objectID": "clases/03_clusters.html#cuándo-no-aplicar-clustering",
+    "href": "clases/03_clusters.html#cuándo-no-aplicar-clustering",
+    "title": "Clusters",
+    "section": "¿Cuándo no aplicar clustering?",
+    "text": "¿Cuándo no aplicar clustering?\n\nSi ya tenés etiquetas o categorías claras (usá clasificación).\nSi los datos no tienen sentido comparativo (textos crudos, fotos, etc.).\nSi hay muchas variables irrelevantes o ruidosas.\nSi sólo hay una variable: clustering multi-dimensional necesita más de una dimensión\n\n\n\n\n\n\n\nTip\n\n\n\nAntes de aplicar clustering, mirá los datos: ¿tiene sentido agrupar? ¿qué variables elegirías? ¿las escalas son comparables?"
   }
 ]

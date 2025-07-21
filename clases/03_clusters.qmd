@@ -1,0 +1,214 @@
+---
+title: "Clusters"
+subtitle: "Clases - Eva"
+date: "2025-07-23"
+author: "Betsy Cohen"
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-location: left
+    df-print: paged
+    theme: minty
+editor: visual
+---
+
+## Tipos de algoritmos de ML
+
+Los algoritmos de machine learning se suelen clasificar en dos grupos, por un lado se encuentran los algoritmos **supervisados** que aplican lo que se ha aprendido con los datos históricos para sacar conclusiones sobre nuevos datos y por otro lado se encuentran los algoritmos **no supervisados** que pueden extraer inferencias de conjuntos de datos.
+
+Los algoritmos **Supervisados:** Se clasifican en problemas de regresión y clasificación, tenemos que pensar que lo que se fundamenta en crear modelos con información histórica para luego poder predecir en el futuro; por ej. aprender a clasificar correos como spam, donde ya sabemos qué correos son spam y cuáles no.
+
+Por su parte los **Supervisados:** son aquellos donde no se tiene variable respuesta. El objetivo es encontrar patrones / asociaciones ocultas a prirmera vista o sobre las cuales por ahí tenemos alguna hipótesis que ya veniamos trabajando en el análisis exploratorio. Por ejemplo, agrupar clientes con comportamientos de compra similares sin saber de antemano cuántos grupos existen.
+
+También existe un tercer tipo de algoritmo que llamamos **Aprendizaje por refuerzo:** y que funciona con un mecanismo de recompensa. Un agente (la máquina) interactúa con el entorno y prueba una variedad de métodos para alcanzar un resultado. El agente es recompensado o castigado en función de las acciones que realiza. Un ejemplo clásico es el entrenamiento de robots o sistemas de juegos para que aprendan a maximizar una recompensa.
+
+## Aprendizaje supervisado: Problemas de clasificación y regresión
+
+"Dentro del aprendizaje supervisado, como mencionamos, tenemos dos tipos principales de problemas:
+
+-   **Problemas de clasificación:** Necesitan predecir la clase más probable de un elemento, en función de un conjunto de variables de entrada. Para este tipo de algoritmos, la variable *target* o respuesta es una variable de tipo categórica. Por ejemplo, clasificar un correo como 'spam' o 'no spam', o determinar si la solicitud de un crédito será 'aprobada' o 'rechazada'.
+
+-   **Problemas de regresión:** En vez de predecir categorías, predicen valores numéricos. Es decir, la variable *target* en un problema de regresión es de tipo cuantitativa. Por ejemplo, predecir el precio de una casa en función de sus características, o estimar las ventas futuras de un producto."
+
+### Regresión lineal
+
+Un ejemplo que ya habíamos visto son las regresiones lineales
+
+![](img/clase_3_linear_regression.gif)
+
+-   Busca una ecuación lineal que describe mejor la correlación de la variable independiente con la variable dependiente
+
+-   Minimiza la diferencia entre los valores reales, por ejemplo, los precios de las casas, y los valores que predice la línea. En otras palabras, intenta encontrar una línea que represente la tendencia general en los datos
+
+## Aprendizaje no supervisado: clusters
+
+📐 Algunas ideas clave:
+
+Distancia: ¿Qué tan parecidos son los casos?
+
+Centroide: Punto medio del grupo.
+
+Número de clusters (K): cuántos grupos querés encontrar.
+
+Maxima variabilidad inter-cluster mínima variabiliidad intra-cluster
+
+## ¿Cuándo tiene sentido aplicar clustering?
+
+-   Cuando tenemos variables numéricas o fácilmente comparables
+
+-   Edad, ingresos, precios, ratings.
+
+-   También pueden usarse variables categóricas, pero requieren técnicas específicas (y más avanzadas).
+
+-   Cuando hay sospecha de que hay subgrupos ocultos
+
+-   No están explícitos, pero queremos descubrirlos.
+
+-   Ej: "no sabemos qué tipos de usuarios hay, pero intuimos que no son todos iguales".
+
+-   Cuando hay suficientes observaciones
+
+-   Con 5 o 10 filas no tiene sentido.
+
+-   Recomendación mínima: al menos 30-40 casos.
+
+-   Cuando las variables están en escalas comparables
+
+-   Edad y salarios pueden tener rangos muy distintos → hay que escalar o normalizar.
+
+## ¿Cuándo no aplicar clustering?
+
+-   Si ya tenés etiquetas o categorías claras (usá clasificación).
+
+-   Si los datos no tienen sentido comparativo (textos crudos, fotos, etc.).
+
+-   Si hay muchas variables irrelevantes o ruidosas.
+
+-   Si sólo hay una variable: clustering multi-dimensional necesita más de una dimensión
+
+::: callout-tip
+Antes de aplicar clustering, mirá los datos: ¿tiene sentido agrupar? ¿qué variables elegirías? ¿las escalas son comparables?
+:::
+
+## Manos a la obra
+
+Arrancamos por setear los paquetes que vamos a usar:
+
+```{r}
+#| echo: true
+#| warning: false
+
+library(tidyverse)    # manipulación y visualización
+library(cluster)      # clustering base
+library(factoextra)   # visualizaciones
+```
+
+Creamos un dataset simple
+
+```{r}
+#| echo: true
+#| warning: false
+
+set.seed(123)
+data <- tibble(
+  edad = c(rnorm(20, 25, 3), rnorm(20, 50, 3)),
+  ingresos = c(rnorm(20, 1000, 200), rnorm(20, 5000, 300))
+)
+
+
+```
+
+Y le pegamos una breve mirada a los datos
+
+```{r}
+ggplot(data, aes(x = edad, y = ingresos)) +
+  geom_point() +
+  labs(title = "Personas según edad e ingresos")
+
+```
+
+Aplicamos K-means con 2 clusters
+
+```{r}
+modelo <- kmeans(data, centers = 2, nstart = 25) 
+data$cluster <- as.factor(modelo$cluster)
+```
+
+🎨 Visualizamos los grupos
+
+```{r}
+ggplot(data, aes(x = edad, y = ingresos, color = cluster)) +
+  geom_point(size = 3) +
+  labs(title = "Clusters encontrados")
+
+```
+
+## Complicando la cosa un poco
+
+Este ejemplo es bastante sencillo vamos a levantar un poquito la vara
+
+```{r}
+set.seed(123)
+
+clientes <- tibble(
+  edad = c(rnorm(50, 25, 5), rnorm(50, 40, 4), rnorm(50, 60, 6)),
+  gasto_comida = c(rnorm(50, 200, 30), rnorm(50, 350, 40), rnorm(50, 150, 20)),
+  gasto_entretenimiento = c(rnorm(50, 80, 15), rnorm(50, 120, 20), rnorm(50, 60, 10))
+)
+
+
+ggplot(clientes, aes(x = gasto_comida, y = gasto_entretenimiento)) +
+  geom_point() +
+  labs(title = "Gasto en comida vs entretenimiento")
+
+
+```
+
+📏 Escalado (muy importante si las variables tienen distintas escalas)
+
+```{r}
+clientes_scaled <- clientes %>% 
+  scale() %>% 
+  as_tibble()
+
+```
+
+¿Cuántos clusters? Método del codo
+
+Buscamos el punto donde la curva "dobla" → ahí está el número óptimo de clusters.
+
+```{r}
+fviz_nbclust(clientes_scaled, kmeans, method = "wss") +
+  labs(title = "Método del codo para elegir número de clusters")
+
+```
+
+Aplicamos K-means (supongamos 3 clusters)
+
+```{r}
+k3 <- kmeans(clientes_scaled, centers = 3, nstart = 25)
+
+clientes_clustered <- clientes %>%
+  mutate(cluster = as.factor(k3$cluster))
+```
+
+Ahora lo visualizamos
+
+```{r}
+ggplot(clientes_clustered, aes(x = gasto_comida, y = gasto_entretenimiento, color = cluster)) +
+  geom_point(size = 3) +
+  labs(title = "Clusters de clientes según gasto") +
+  theme_minimal()
+
+```
+
+## Para pensar
+
+Preguntas para pensar:
+
+¿Qué diferencias hay entre los grupos?
+
+¿Cómo podría usar una empresa esta segmentación?
+
+¿Qué pasaría si incluimos más variables?

@@ -15,6 +15,8 @@ website:
           text: Analisis exploratorio
         - href: clases/02_regresiones_lineales.qmd
           text: Regresiones lineales
+        - href: clases/03_clusters.qmd
+          text: Clusters         
       - href: recursos.qmd
         text: Recursos
       - href: about.qmd
