@@ -19,7 +19,7 @@ Los algoritmos de machine learning se suelen clasificar en dos grupos, por un la
 
 Los algoritmos **Supervisados:** Se clasifican en problemas de regresión y clasificación, tenemos que pensar que lo que se fundamenta en crear modelos con información histórica para luego poder predecir en el futuro; por ej. aprender a clasificar correos como spam, donde ya sabemos qué correos son spam y cuáles no.
 
-Por su parte los **Supervisados:** son aquellos donde no se tiene variable respuesta. El objetivo es encontrar patrones / asociaciones ocultas a prirmera vista o sobre las cuales por ahí tenemos alguna hipótesis que ya veniamos trabajando en el análisis exploratorio. Por ejemplo, agrupar clientes con comportamientos de compra similares sin saber de antemano cuántos grupos existen.
+Por su parte los **No** **Supervisados:** son aquellos donde no se tiene variable respuesta. El objetivo es encontrar patrones / asociaciones ocultas a prirmera vista o sobre las cuales por ahí tenemos alguna hipótesis que ya veniamos trabajando en el análisis exploratorio. Por ejemplo, agrupar clientes con comportamientos de compra similares sin saber de antemano cuántos grupos existen.
 
 También existe un tercer tipo de algoritmo que llamamos **Aprendizaje por refuerzo:** y que funciona con un mecanismo de recompensa. Un agente (la máquina) interactúa con el entorno y prueba una variedad de métodos para alcanzar un resultado. El agente es recompensado o castigado en función de las acciones que realiza. Un ejemplo clásico es el entrenamiento de robots o sistemas de juegos para que aprendan a maximizar una recompensa.
 
@@ -51,7 +51,7 @@ Centroide: Punto medio del grupo.
 
 Número de clusters (K): cuántos grupos querés encontrar.
 
-Maxima variabilidad inter-cluster mínima variabiliidad intra-cluster
+Máxima variabilidad inter-cluster mínima variabiliidad intra-cluster
 
 ## ¿Cuándo tiene sentido aplicar clustering?
 
@@ -202,13 +202,3 @@ ggplot(clientes_clustered, aes(x = gasto_comida, y = gasto_entretenimiento, colo
   theme_minimal()
 
 ```
-
-## Para pensar
-
-Preguntas para pensar:
-
-¿Qué diferencias hay entre los grupos?
-
-¿Cómo podría usar una empresa esta segmentación?
-
-¿Qué pasaría si incluimos más variables?

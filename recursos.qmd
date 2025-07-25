@@ -7,9 +7,15 @@ En esta sección vamos a reunir varios recursos que trabajamos a lo largo de las
 ## 📦Paquetes y librerías
 
 | Paquete                                                                            | Para qué sirve                                                                                                                                                                                                                                                                  | Documentación                                 |
-|------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------|
+|--------------|-------------------------------------------|--------------|
 | ![](https://docs.ropensci.org/skimr/reference/figures/logo.png){width="85"}        | Nos proporciona estadísticos de resumen para revisar y entender rápidamente las características de nuestra base. La función que más vamos a usar es `skimr()` para ver estadisticos de resumen de un data set                                                                   | <https://docs.ropensci.org/skimr/index.html>  |
 | ![](https://dplyr.tidyverse.org/logo.png){width="85"}                              | Es la librería estrella de tydyverse para manipulación de datos básica. A través de sus funciones `mutate() group_by() select() filter() summarise(`) y `arrange()` podemos construir tablas y manipular datos facilmente                                                       | <https://dplyr.tidyverse.org/>                |
 | ![](https://sfirke.github.io/janitor/reference/figures/logo_small.png){width="85"} | Janitor nos ofrece algunas funciones que facilitan la diaria como `clean_names()` para emprolijar los nombres de nuestras variables, `get_dupes()` obtener listados de duplicados, u obtener tablas de frecuencia con `tabyl().`Janitor es un portero buena onda 😎             | <https://sfirke.github.io/janitor/index.html> |
 | ![](https://boxuancui.github.io/DataExplorer/logo.png){width="82"}                 | Data explorer nos ayuda a automatizar el proceso de exploración inicial, con funciones como introduce() de información básica visualización de missing `plot_missing()`, de correlación `plot_correlation()` e incluso crear un reporte inicial create_report()                 | <https://boxuancui.github.io/DataExplorer/>   |
 | ![](https://gt.rstudio.com/reference/figures/logo.svg){width="82"}                 | Lindo es mejor que feo y posit lo sabe por eso con la librería gt() vas a poder crear tablas que se vean bonitas y profesionales. Con una lógica de gramática de tablas (guiño a ggplot) que las disecciona en diferentes partes podes retocar desde el título hasta la fuennte | <https://gt.rstudio.com/>                     |
+
+## 📖 Libros
+
+-   [Vazquez Brust A. (2018). Ciencia de Datos para Gente Sociable - Una introducción a la exploración, análisis y visualización de datos](https://bitsandbricks.github.io/ciencia_de_datos_gente_sociable/)
+
+-   [Kuhn M. and Silge J. (2023). Tidy Modeling with R](https://www.tmwr.org/)

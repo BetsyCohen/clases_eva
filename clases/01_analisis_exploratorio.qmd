@@ -288,14 +288,14 @@ df <- df %>%
 
 ¿Qué buscamos en el análisis exploratorio?
 
--   Ver las frecuencias, estadísticos de resumen como medias, modas, rangos intercuartiles, rangos, etc.
--   Crear visaulizaciones de datos
+-   Ver las frecuencias, estadísticos de resumen como medias, modas, rangos inter cuartiles, rangos, etc.
+-   Crear visualizaciones de datos
 
 La forma en que estructuramos el análisis depende mucho del tipo de trabajo.
 
 -   Formularios /Encuestas/ KIPs predeterminados (análisis ya está guiado un poco \`por las propias preguntas)
 
--   Fuentes secundarias Formmularios / Registros (Estudios más exploratorios )
+-   Fuentes secundarias Formularios / Registros (Estudios más exploratorios )
 
 -   Exploración como paso intermedio para otra
 
@@ -351,7 +351,7 @@ df %>%
 
 Los primeros dos años del programa el proyecto se observa una mayor dispersión y que establece el terreno para 2017 que será el año estrella del programa alcanzando a un total de 96.680 beneficiarios y un alcance promedio de 284 beneficiarios ( muy cercana de la mediana 300). 2018 muestra el exito del programa a que a pesar de llegar a muchos menos beneficiarios los poquisimos proyectos que realizo (apenas 40) fueron sumamente eficientes en promedio cada uno de ellos tienen al rededor de 250 beneficiarios. La pandemia termina de apagar el programa que muestra su caída con 500 y 300 eventos de excelente alcance promedio.
 
-Esto debe leerse en función de los tipos de espacio ¿Hubo una desciión de hacer menos eventos en espacios más grandes?
+Esto debe leerse en función de los tipos de espacio ¿Hubo una decisión de hacer menos eventos en espacios más grandes?
 
 ```{r}
 df %>% 
@@ -361,7 +361,7 @@ df %>%
   
 ```
 
-😲 Para nada! Los años en los que se trabajo en parques y en el CCK (que podríamos pensar como espacios más grandes) fueron justamente los proimeros dos del programa.
+😲 Para nada! Los años en los que se trabajo en parques y en el CCK (que podríamos pensar como espacios más grandes) fueron justamente los primeros dos del programa.
 
 ### Exploración con DataExplorer
 
@@ -461,9 +461,9 @@ summary(lm_1)
 
 ```
 
-Nuestro modelo solo está explicando el 28.4% de la variabilidad (Adjusted R-squared) con un error estandar alto de 93.32.
+Nuestro modelo solo está explicando el 28.4% de la variabilidad (Adjusted R-squared) con un error estándar alto de 93.32.
 
-El intercepto nos muestra la preducció para la categoría de base (el 2016) y vemos que
+El intercepto nos muestra la producción para la categoría de base (el 2016) y vemos que
 
 2017--2021 muestran aumentos importantes respecto al año base.
 
@@ -487,7 +487,7 @@ lm_2 <- lm(cantidad_beneficiarios ~ anio_categorica + proyecto + nivel_modal + d
 summary(lm_2)
 ```
 
-Aca ya vemos como mejora el modelo en general (52% de la variabilidad). Respecto de los años 2017 y 2018 el programa estalla. Tambien vemos cómo algunas actividades empiezan a rendir más (Teatro sobre todo)
+Acá ya vemos como mejora el modelo en general (52% de la variabilidad). Respecto de los años 2017 y 2018 el programa estalla. También vemos cómo algunas actividades empiezan a rendir más (Teatro sobre todo)
 
 Los proyectos artísticos (especialmente el teatro) convocan multitudes, y eso es visible incluso en modelos estadísticos. Los años 2017 y 2020 tuvieron momentum para el programa. La escuela privada parece tener más poder de convocatoria. Pero ojo, hay bastante que aún no se explica ---este modelo explica bien, pero no todo.
 
