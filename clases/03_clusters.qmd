@@ -202,3 +202,154 @@ ggplot(clientes_clustered, aes(x = gasto_comida, y = gasto_entretenimiento, colo
   theme_minimal()
 
 ```
+
+## Cluster con variables categóricas: el uso de k-modas
+
+#### **¿Qué hace K-modes?**
+
+Es una extensión de **K-means**, pero para **datos categóricos**.
+
+Usa **modas** en lugar de medias como "centroides".
+
+Mide la distancia como el **número de diferencias** entre observaciones (distancia simple-matching).
+
+#### ¿Por qué K-modes y no K-means?
+
+K-means requiere cálculos de medias y distancias euclidianas: **achicable solo para datos numéricos**.
+
+K-modes permite agrupar por **coincidencias categóricas**, usando modas y conteo de disparidad.
+
+#### K-Modes Como dijo Gilda: pasito a pasito
+
+1.  Elegimos una obseravción (instancia) aleatoriamente y la usamos como cluster de punto de partida.
+
+2.  Calcular la disimilitud entre cada observación y cada modo (cuántas variables difieren) agregando o scando un punto.
+
+3.  Asignar cada observación al cluster centroide.
+
+4.  Cada caracteritica tiene que tener la respuesta más habitual como centroide.
+
+5.  Repetimos los pasos 2 a 4 hasta que no cambien las asignaciones de los individuos a el centroide más cercano.
+
+El algoritmo converge cuando las asignaciones no cambian.En ese punto, los modos representan perfiles centrales categóricos de cada grupo.
+
+Vamos a verlo en un ejemplo sencillo
+
+1.  Elegimos alatoriaamnte un individuo random para cada cluster que nos sirven como punto de arranque
+
+![](img/k_modas_tabla_1.png)
+
+de modo que para el cluster 1 selecciono al individuo 1 para el 2 me quedo con el individuo 5, para el 3 me quedo con el individuo 10
+
+![](img/k_modas_tabla_2.png)
+
+2.  Comparamos cada categoría en el cluster con la observación del caso que estemos analizando (tenemos que analizar todos los casos). Por cada diferencia en la observación sumamos 1 y si es igual no le agregamos nada.
+
+En el primer caso obviamente nos va a dar ser porque el individuo 1 es el mismo cluster, es decir tiene una distancia de 0 respecto de si mismo.
+
+![](img/k_modas_tabla_3.png)
+
+y esto lo vamos repitiendo con cada uno
+
+![](img/k_modas_tabla_4.png)
+
+Cuando nos movemos al cluster 2 vemos que tenemos diferencias en 4 de las variables por lo tanto el Cluster 2 tiene una distancia de 4 respecto del cluster 1
+
+![](img/k_modas_tabla_5.png)
+
+y el cluester 3 tiene una distanacia de 2. Esto lo repetimos con todos los casos hasta que nos va a quedar algo más o menos como esto.
+
+![](img/k_modas_tabla_6.png)
+
+3.  Asignación de casos a cada cluster.
+
+Para cada caso vamos a seleccionar el que tiene un valor más pequeño, en otras palabras vamos a buscar a qué es más cercano.
+
+![](img/k_modas_tabla_7.png) Y por ende nos va a quedar los cluster conformados por:
+
+Cluster 1: 1,2,6,7,8 Cluster 2: 3,5 Cluster 3: 4,9,10
+
+4.  Observamos la moda del cluster tal cual queda conformada por los casos que la integran
+
+![](img/k_modas_tabla_8.png)
+
+de modo que nos va a quedar ![](img/k_modas_tabla_9.png)
+
+6.  Repetimos los pasos 2 a 5 hasta que las asignaciones se consolidan en su convergencia.
+
+### Ventajas y desventajas
+
+**Ventajas**
+
+Diseñado específicamente para variables categóricas. Interpretable: cada cluster tiene un perfil claro (modo por variable).
+
+**Desventajas** Sensible a inicialización → conviene usar múltiples starts. No maneja variables numéricas. Puede fragmentar con categorías raras sin agrupar.
+
+## Aplicando K modas con r
+
+Usamos e instalamos klar y armo un dataset de juguete
+
+```{r}
+#| label: Instalación y carga
+
+#install.packages("klaR")
+library(klaR)
+
+# Dataset toy
+df_toy <- data.frame(
+  pelo  = c("rubio", "castaño", "pelirrojo", "rubio", "castaño", "rubio"),
+  ojos  = c("azul", "verde", "verde", "azul", "marrón", "marrón"),
+  piel  = c("clara", "morena", "clara", "clara", "morena", "morena")
+)
+
+df_toy
+
+```
+
+Ahora corremos k-modas con la función kmodes()
+
+```{r}
+#| label: correr kmodas
+
+set.seed(123)
+
+km_toy <- kmodes(df_toy, modes = 2, iter.max = 10, weighted = FALSE)
+
+km_toy
+```
+
+vemos las asignaciones
+
+```{r}
+#| label: Asignaciones
+
+# Asignaciones de cada observación
+km_toy$cluster
+```
+
+los centroides
+
+```{r}
+#| label: centroides
+# Modas (centroides categóricos) por cluster
+km_toy$modes
+```
+
+y los tamaños de cada cluster
+
+```{r}
+#| label: tamanio_cluster_kmodas
+
+# Tamaño de cada cluster
+km_toy$size
+```
+
+#### ¿Cómo leemos esto?
+
+El Cluster 1 agrupa perfiles con xxxxx.
+
+El Cluster 2 agrupa perfiles con xxxx.
+
+Cada modo es la categoría más frecuente en ese cluster por variable.
+
+La asignación se hace minimizando el número de diferencias con los modos.
