@@ -16,7 +16,9 @@ website:
         - href: clases/02_regresiones_lineales.qmd
           text: Regresiones lineales
         - href: clases/03_clusters.qmd
-          text: Clusters         
+          text: Clusters
+        - href: clases/05_tableros_quarto.qmd
+          text: Tableros     
       - href: recursos.qmd
         text: Recursos
       - href: about.qmd

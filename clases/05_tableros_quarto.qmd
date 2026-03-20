@@ -1,0 +1,15 @@
+---
+title: "Tableros Quarto"
+---
+
+## Documentación
+
+<https://quarto.org/docs/dashboards/>
+
+## Iconos en Bootstrap
+
+<https://icons.getbootstrap.com/>
+
+## Descargar ejemplos
+
+[Archivo zip](clases/tablero_indicadores_eva.zip)
