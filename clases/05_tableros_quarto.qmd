@@ -12,4 +12,4 @@ title: "Tableros Quarto"
 
 ## Descargar ejemplos
 
-[Archivo zip](clases/tablero_indicadores_eva.zip)
+[Archivo zip](https://github.com/BetsyCohen/clases_eva/blob/master/clases/tablero_indicadores_eva.zip)
