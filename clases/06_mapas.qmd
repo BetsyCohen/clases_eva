@@ -123,9 +123,6 @@ Con `addTiles` donde agregas el mapa base que viene por defecto y que nos trae l
 
 Sin embargo (como en muchas cosas) si hacemos zoom vamos a ver un sesgo político importante
 
-```{r}
-geo_data
-```
 
 ```{r}
 leaflet() %>%
@@ -135,7 +132,18 @@ leaflet() %>%
 
 Para evitarlo usamos la capa con addpolygon() el servicio de Argenmap v2 tal cual lo sugiere la bióloga Natalia Morandeiro en [este post](https://nmorandeira.netlify.app/post/2020-08-02-representar-islas-malvinas-en-r-y-qgis/) que sin quererlo sobrevuela también el problema de la soberanía y el sesgo de nuestros datos
 
-Tips: - Dentro de leaflet las referencias a columnas tienen que ir con \~ (fórmula) o explícitamente geo_data\$cluster. - La función `colorFactor()` nos crea una paleta para variable factorial pero si fuera numérica usamos `colorNumeric()`
+Tips: 
+
+- Dentro de leaflet las referencias a columnas tienen que ir con \~ (fórmula) o explícitamente geo_data\$cluster. 
+
+- La función `colorFactor()` nos crea una paleta para variable factorial pero si fuera numérica usamos `colorNumeric()`
+
+- Para saber la lat y long lo veo en la info del Bounding box de mi geometría 
+
+
+```{r}
+geo_data
+```
 
 ```{r}
 
