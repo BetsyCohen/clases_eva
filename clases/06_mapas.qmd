@@ -1,5 +1,5 @@
 ---
-title: "mapas"
+title: "Mapas"
 format: html
 ---
 
@@ -11,7 +11,9 @@ Librerías que vamos a ver hoy
 
 -   `leaflet` para hacer gráficos dinámicos en java
 
-## Antes de arrancar Cargamos la geometría de los partidos
+
+
+## Antes de arrancar cargamos la geometría de los partidos
 
 https://catalogo.datos.gba.gob.ar/dataset/partidos
 
@@ -117,11 +119,14 @@ Para crear un mapa tenemos 4 pasos básicos
 
 4.  Imprimimos el widget de mapa para mostrarlo.
 
-Tenemos dos formas de hacer la primera capa de base de nuestro mapa:
 
-Con `addTiles` donde agregas el mapa base que viene por defecto y que nos trae la capa de OpenStreetMap. Con la función setView() lo podemos centrar para que no nos muestre todo el mapa mundial.
 
-Sin embargo (como en muchas cosas) si hacemos zoom vamos a ver un sesgo político importante
+
+### El "problemita" de las capas de por defecto de `addTiles` 
+
+`addTiles` es muy linda como mapa base (es la que viene por defecto) y nos trae la capa de OpenStreetMap. Con la función setView() lo podemos centrar para que no nos muestre todo el mapa mundial.
+
+Sin embargo (como en muchas cosas) si hacemos zoom vamos a ver un pequeño sesgo político importante al mirar hacia el sur:
 
 
 ```{r}
@@ -130,11 +135,11 @@ leaflet() %>%
   setView(lng = -63, lat = -39, zoom = 5) # Centrar en Buenos Aires
 ```
 
-Para evitarlo usamos la capa con addpolygon() el servicio de Argenmap v2 tal cual lo sugiere la bióloga Natalia Morandeiro en [este post](https://nmorandeira.netlify.app/post/2020-08-02-representar-islas-malvinas-en-r-y-qgis/) que sin quererlo sobrevuela también el problema de la soberanía y el sesgo de nuestros datos
+Para evitarlo usamos la capa con `addPolygons()` el servicio de **Argenmap v2** tal cual lo sugiere la bióloga Natalia Morandeiro en [este post](https://nmorandeira.netlify.app/post/2020-08-02-representar-islas-malvinas-en-r-y-qgis/) 
 
-Tips: 
+### Tips básicos: 
 
-- Dentro de leaflet las referencias a columnas tienen que ir con \~ (fórmula) o explícitamente geo_data\$cluster. 
+- Dentro de leaflet las referencias a columnas tienen que ir con \~ o explícitamente (ej. geo_data\$cluster). 
 
 - La función `colorFactor()` nos crea una paleta para variable factorial pero si fuera numérica usamos `colorNumeric()`
 
@@ -145,17 +150,22 @@ Tips:
 geo_data
 ```
 
+Creamos una paleta de colores para el mapa interactivo de coropletas yo elgí la paleta Yellow-Green-Blue pero hay otras 
+
+```{r}
+pal_leaflet <- colorFactor(
+  palette = "YlGnBu",  
+  domain = geo_data$cluster, 
+  na.color = "lightgray" 
+)
+```
+
+
+Creamos el mapa leaflet
+
+
 ```{r}
 
-# Creamos una paleta de colores para el mapa interactivo de coropletas
-
-pal_leaflet <- colorFactor(
-  palette = "YlGnBu", # elgí la paleta Yellow-Green-Blue pero hay otras
-  domain = geo_data$cluster, # el dominio
-  na.color = "lightgray" # color para valores NA
-)
-
-# Crear mapa leaflet
 leaflet(data = geo_data) |> 
   addPolygons( 
     fillColor = ~pal_leaflet(cluster), 
@@ -170,6 +180,6 @@ leaflet(data = geo_data) |>
   # Añade la leyenda de color
   addLegend(pal = pal_leaflet, values = ~cluster, title = "Cluster") %>%
     # Opcional: Ajustar la vista inicial
-  setView(lng = -61, lat = -37, zoom = 6) # Centrar en Argentina
+  setView(lng = -61, lat = -37, zoom = 6) # Centrar en Buenos Aires
   
 ```
