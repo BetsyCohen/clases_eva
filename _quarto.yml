@@ -18,7 +18,9 @@ website:
         - href: clases/03_clusters.qmd
           text: Clusters
         - href: clases/05_tableros_quarto.qmd
-          text: Tableros     
+          text: Tableros
+        - href: clases/06_mapas.qmd
+          text: Mapas    
       - href: recursos.qmd
         text: Recursos
       - href: about.qmd

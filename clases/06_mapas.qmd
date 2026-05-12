@@ -3,7 +3,6 @@ title: "mapas"
 format: html
 ---
 
-
 Librerías que vamos a ver hoy
 
 -   `sf{}`(simple shapes): que nos ayuda en la interpretación geométrica del multi-poligono
@@ -17,9 +16,6 @@ Librerías que vamos a ver hoy
 https://catalogo.datos.gba.gob.ar/dataset/partidos
 
 ```{r}
-#| warning: false
-#| echo: false
-
 library(tidyverse) # ya nos incluye ggplot
 library(sf) # Para trabajar con datos geoespaciales
 library(stringi) # nomas por un temita de como vienen escritos los partidos
@@ -77,7 +73,7 @@ geo_data |>
   janitor::tabyl(cluster)
 ```
 
-# Mapas con ggplot
+# Mapas con `ggplot`
 
 `ggplot` nos ofrece la posibilidad de dibujar objetos sf utilizando la capa de geometría `geom_sf`
 
