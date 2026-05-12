@@ -180,5 +180,19 @@
     "title": "Tableros Quarto",
     "section": "Descargar ejemplos",
     "text": "Descargar ejemplos\nArchivo zip"
+  },
+  {
+    "objectID": "clases/06_mapas.html",
+    "href": "clases/06_mapas.html",
+    "title": "mapas",
+    "section": "",
+    "text": "Librerías que vamos a ver hoy"
+  },
+  {
+    "objectID": "clases/06_mapas.html#antes-de-arrancar-cargamos-la-geometría-de-los-partidos",
+    "href": "clases/06_mapas.html#antes-de-arrancar-cargamos-la-geometría-de-los-partidos",
+    "title": "mapas",
+    "section": "Antes de arrancar Cargamos la geometría de los partidos",
+    "text": "Antes de arrancar Cargamos la geometría de los partidos\nhttps://catalogo.datos.gba.gob.ar/dataset/partidos\n\nlibrary(tidyverse) # ya nos incluye ggplot\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.6\n✔ forcats   1.0.1     ✔ stringr   1.6.0\n✔ ggplot2   4.0.1     ✔ tibble    3.3.0\n✔ lubridate 1.9.4     ✔ tidyr     1.3.1\n✔ purrr     1.2.0     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(sf) # Para trabajar con datos geoespaciales\n\nLinking to GEOS 3.13.1, GDAL 3.11.4, PROJ 9.7.0; sf_use_s2() is TRUE\n\nlibrary(stringi) # nomas por un temita de como vienen escritos los partidos\nlibrary(leaflet)\n\nTraemos los datos geo\n\ngeo_data &lt;- st_read(\"D:/clases_eva/clases/data_raw/limites-partidos/partidos.geojson\")\n\nReading layer `partidos' from data source \n  `D:\\clases_eva\\clases\\data_raw\\limites-partidos\\partidos.geojson' \n  using driver `GeoJSON'\nSimple feature collection with 143 features and 8 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: -63.39 ymin: -41.04 xmax: -56.66 ymax: -33.26\nGeodetic CRS:  WGS 84\n\n\nCargamos el df de nuestros clusters\n\ncluster_data &lt;- read.csv(\"D:/clases_eva/clases/data_raw/clustersxpart.csv\") |&gt; \n  distinct(nomdepto_censo,.keep_all = T)\n\nPara unir ambos datos hacemos algunas transformaciones\n\ngeo_data &lt;- geo_data |&gt; \n  mutate(\n    nomdepto_censo = nam |&gt; \n      # le sacamos las tildes y caracteres espciales\n      stri_trans_general(\"Latin-ASCII\") |&gt; \n      toupper() |&gt; \n      trimws() |&gt; \n      # excepto el caso de cañuelas que quiere tener ñ\n      str_replace(\"CANUELAS\", \"CAÑUELAS\")\n  )|&gt; \n  # unimos ambas tablas\n  left_join(cluster_data, by = join_by(nomdepto_censo))\n\n# geo_data |&gt; \n#   janitor::tabyl(cluster)\n# \n# cluster_data |&gt; \n#   janitor::tabyl(cluster)\n\nLe ponemos nombres a los clusters\n\ngeo_data&lt;- geo_data |&gt; \n  mutate(cluster = case_when(cluster == 1 ~ \"Cluster 1\",\n                             cluster == 2 ~ \"Cluster 2\",\n                             cluster == 3 ~ \"Cluster 3\",\n                             ))\n\ngeo_data |&gt; \n  janitor::tabyl(cluster)\n\n clustergeometry  n    percent valid_percent\n       Cluster 1 97 0.67832168    0.78861789\n       Cluster 2 19 0.13286713    0.15447154\n       Cluster 3  7 0.04895105    0.05691057\n            &lt;NA&gt; 20 0.13986014            NA"
   }
 ]
