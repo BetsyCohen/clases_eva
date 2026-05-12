@@ -1,0 +1,171 @@
+---
+title: "mapas"
+format: html
+---
+
+
+Librerías que vamos a ver hoy
+
+-   `sf{}`(simple shapes): que nos ayuda en la interpretación geométrica del multi-poligono
+
+-   `gglot` que nos va a servir para hacer mapas estáticos
+
+-   `leaflet` para hacer gráficos dinámicos en java
+
+## Antes de arrancar Cargamos la geometría de los partidos
+
+https://catalogo.datos.gba.gob.ar/dataset/partidos
+
+```{r}
+#| warning: false
+#| echo: false
+
+library(tidyverse) # ya nos incluye ggplot
+library(sf) # Para trabajar con datos geoespaciales
+library(stringi) # nomas por un temita de como vienen escritos los partidos
+library(leaflet)
+```
+
+Traemos los datos geo
+
+```{r}
+geo_data <- st_read("D:/clases_eva/clases/data_raw/limites-partidos/partidos.geojson")
+```
+
+Cargamos el df de nuestros clusters
+
+```{r}
+cluster_data <- read.csv("D:/clases_eva/clases/data_raw/clustersxpart.csv") |> 
+  distinct(nomdepto_censo,.keep_all = T)
+```
+
+Para unir ambos datos hacemos algunas transformaciones
+
+```{r}
+geo_data <- geo_data |> 
+  mutate(
+    nomdepto_censo = nam |> 
+      # le sacamos las tildes y caracteres espciales
+      stri_trans_general("Latin-ASCII") |> 
+      toupper() |> 
+      trimws() |> 
+      # excepto el caso de cañuelas que quiere tener ñ
+      str_replace("CANUELAS", "CAÑUELAS")
+  )|> 
+  # unimos ambas tablas
+  left_join(cluster_data, by = join_by(nomdepto_censo))
+
+# geo_data |> 
+#   janitor::tabyl(cluster)
+# 
+# cluster_data |> 
+#   janitor::tabyl(cluster)
+
+
+```
+
+Le ponemos nombres a los clusters
+
+```{r}
+geo_data<- geo_data |> 
+  mutate(cluster = case_when(cluster == 1 ~ "Cluster 1",
+                             cluster == 2 ~ "Cluster 2",
+                             cluster == 3 ~ "Cluster 3",
+                             ))
+
+geo_data |> 
+  janitor::tabyl(cluster)
+```
+
+# Mapas con ggplot
+
+`ggplot` nos ofrece la posibilidad de dibujar objetos sf utilizando la capa de geometría `geom_sf`
+
+```{r}
+ggplot()+
+  geom_sf(data = geo_data)
+```
+
+Podemos usar nuestra variable cluster como aes de relleno (fill)
+
+```{r}
+geo_data |> 
+  filter(!is.na(cluster)) |> 
+  ggplot()+
+  # usamos el valor del cluster como relleno para cada geometria
+  geom_sf(aes(fill = cluster ))+
+  labs(title = "Cluster de provincia de Buenos Aires",
+       subtitle = "Año 2026",
+       fill = "Cluster",
+       caption = "Fuente: Elaboración propia. Cartografía: IGN") +
+  theme_minimal() +
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.background = element_blank())
+```
+
+# Mapas con `leaflet`
+
+Leaflet es una de las bibliotecas JavaScript de código abierto más populares para mapas interactivos. La utilizan sitios web como The New York Times y The Washington Post, GitHub y Flickr , así como especialistas en SIG como OpenStreetMap , Mapbox y CartoDB .
+
+La librería de r (que lleva el mismo nombre) acilita la integración y el control de mapas de Leaflet en R.
+
+Para crear un mapa tenemos 4 pasos básicos
+
+1.  Llamamos al widget [`leaflet()`](https://rstudio.github.io/leaflet/reference/leaflet.html).
+
+2.  Agrar *capas* (es decir, entidades) al mapa mediante funciones de capa (por ejemplo, `addTiles`, `addMarkers`, `addPolygons`) para modificar el widget del mapa.
+
+3.  Repitimos el paso 2 según la cantidad de capas que necesitemos.
+
+4.  Imprimimos el widget de mapa para mostrarlo.
+
+Tenemos dos formas de hacer la primera capa de base de nuestro mapa:
+
+Con `addTiles` donde agregas el mapa base que viene por defecto y que nos trae la capa de OpenStreetMap. Con la función setView() lo podemos centrar para que no nos muestre todo el mapa mundial.
+
+Sin embargo (como en muchas cosas) si hacemos zoom vamos a ver un sesgo político importante
+
+```{r}
+geo_data
+```
+
+```{r}
+leaflet() %>%
+  addTiles() %>%
+  setView(lng = -63, lat = -39, zoom = 5) # Centrar en Buenos Aires
+```
+
+Para evitarlo usamos la capa con addpolygon() el servicio de Argenmap v2 tal cual lo sugiere la bióloga Natalia Morandeiro en [este post](https://nmorandeira.netlify.app/post/2020-08-02-representar-islas-malvinas-en-r-y-qgis/) que sin quererlo sobrevuela también el problema de la soberanía y el sesgo de nuestros datos
+
+Tips: - Dentro de leaflet las referencias a columnas tienen que ir con \~ (fórmula) o explícitamente geo_data\$cluster. - La función `colorFactor()` nos crea una paleta para variable factorial pero si fuera numérica usamos `colorNumeric()`
+
+```{r}
+
+# Creamos una paleta de colores para el mapa interactivo de coropletas
+
+pal_leaflet <- colorFactor(
+  palette = "YlGnBu", # elgí la paleta Yellow-Green-Blue pero hay otras
+  domain = geo_data$cluster, # el dominio
+  na.color = "lightgray" # color para valores NA
+)
+
+# Crear mapa leaflet
+leaflet(data = geo_data) |> 
+  addPolygons( 
+    fillColor = ~pal_leaflet(cluster), 
+    fillOpacity = 0.8, # Opacidad del relleno
+    color = "white", # Color del borde de los polígonos
+    weight = 1, # Grosor del borde
+    # Información al pasar el mouse (etiquetas)
+    label = ~cluster,
+    # Opcional: Información al hacer clic (popup)
+    popup = ~paste("<b>", nam, "</b><br>Pertenece a: ", cluster)
+  )  |> 
+  # Añade la leyenda de color
+  addLegend(pal = pal_leaflet, values = ~cluster, title = "Cluster") %>%
+    # Opcional: Ajustar la vista inicial
+  setView(lng = -61, lat = -37, zoom = 6) # Centrar en Argentina
+  
+```
