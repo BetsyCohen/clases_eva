@@ -3,7 +3,103 @@ title: "Mapas"
 format: html
 ---
 
-Librerías que vamos a ver hoy
+## Trabajar con mapas es presentar sobre un plano la Tierra y su superficie (irregular)
+
+-   Sistemas de coordenadas de referencia (CRS) (el más conocido lat-long)
+
+-   **Proyecciones cartográficas**, instrucciones para traducir a un plano la disposición de puntos ubicados en la esfera terrestre.
+
+    En toda proyección (como en cualquier traducción), los mapas, inevitablemente, son una versión distorsionada ya que no podemos pasar de la esfera al plano sin desformar la superficie, distancia.
+
+![](https://tmap.geocompx.org/figures/fig-exprojs-1.png){fig-align="center" width="407"}
+
+La proyección más famosa es la **Mercator**, diseñada para asistir la navegación marítima y en uso desde el siglo XVI. Su fuerte es que no distorsiona las direcciones, por lo que permite fijar el rumbo de navegación consultando el mapa. Su principal problema es que produce una distorsión notable en las áreas cercanas a los polos: Groenlandia aparenta el mismo tamaño que toda África, cuando en realidad tiene sólo un quinceavo de su superficie. Por esa razón perdió la proyección popularidad en el siglo XX cuando comenzaron a preferirse proyecciones que respetan las áreas. Sin embargo, en el siglo XXI la proyección Mercator recuperó protagonismo. Google la eligió para sus mapas en línea, y por razones de compatibilidad otros proveedores de mapas digitales la adoptaron también. Así, y para inconsolable irritación de los geógrafos, Mercator se convirtió en el estándar de facto para aplicaciones geográficas en la web.
+
+En la práctica, si trabajamos en forma frecuente con archivos georreferenciados vamos a sufrir tarde o temprano de problemas de coordenadas o proyección. El más común de ellos: tener una fuentes de datos geográficos que no podemos comparar con otras, porque desconocemos el sistema de coordenadas que se usó para crearla; es decir, no podemos saber a que posición sobre el planeta corresponde cada observación en los datos.
+
+## Tipo de datos en un mapa
+
+-   Puntos
+
+-   Líneas
+
+-   Multipolígonos
+
+## Formatos de archivos georreferenciados
+
+-   **shapefile**: creado por ESRI (creadores de ArcGIS) tiene varios archivos que por lo general vienen combinados en un zip los nombres de las variables tienen que tener 10 caracteres o menos (la gente se pone creativa con las abreviaturas)
+
+-   **GeoJSON**:una alteranriva más feliz y de código abierto que corrige estos problemas
+
+-   **KML/KMZ:** el formato que usa Google Earth
+
+-   **csv**: representando **puntos** de latitud y longitud (por lo cual solo podremos dibujar puntos y líneas)
+
+# Tipos de mapas
+
+Existen muchos tipos de mapas los más comunes son ...
+
+## Mapa de puntos
+
+Los mapas de puntos son una forma de **detectar patrones** espaciales o la distribución de datos en una región geográfica, colocando puntos de igual tamaño sobre una región geográfica.
+
+Hay **dos tipos de mapas** de puntos: **uno a uno** (un punto representa un único recuento u objeto) y **uno a muchos** (un punto representa una unidad particular, por ejemplo, 1 punto = 10 árboles).
+
+![](https://datavizcatalogue.com/methods/images/top_images/SVG/dot_map.svg)
+
+## Coropletas
+
+En los mapas de coropletas diferentes áreas geográficas se colorean en base a una variable asociada a esas áreas.
+
+Este tipo de gráfico proporciona de manera intuitiva cómo una determinada variable (la población, los ingresos, ...) varían entre las diferentes áreas.
+
+![](https://datavizcatalogue.com/methods/images/anatomy/choropleth.png)
+
+## Mapa de burbujas
+
+El mapa de burbujas usa símbolos proporcionales para representar cómo una variable varía sobre diferentes áreas geográficas. El símbolo usado es por lo general un círculo, cuyo diámetro depende del valor de la variable de interés.
+
+Son una **alternativa a las coropletas** con un poquito más de complejidad ya que necesitamos calcular el centroide de cada región.
+
+Una contra es que las burbujas demasiado grandes pueden superponerse a otras burbujas y regiones del mapa, por lo que esto debe tenerse en cuenta, ya que a veces podemos resolverlo con transparencias y a veces no.
+
+![](https://datavizcatalogue.com/methods/images/top_images/SVG/bubble_map.svg)
+
+## Mapas de conexiones y mapas de flujos
+
+Los **mapas de conexión** se dibujan conectando puntos colocados en un mapa mediante líneas rectas o curvas.
+
+Pueden usarse para mostrar **rutas** de **una sola cadena de enlaces**. Además, pueden ser útiles para revelar patrones espaciales mediante la **distribución de conexiones** o su **concentración** en un punto del mapa.
+
+![](https://datavizcatalogue.com/methods/images/anatomy/SVG/connection_map.svg)
+
+Los **mapas de flujo** son parecidos a los mapas de conexiones pero incluyen además una **tercera dimensión de magnitud.**
+
+Por lo general, se utilizan para mostrar datos sobre la **migración** de personas o productos.
+
+La magnitud o cantidad de migración en una sola línea de flujo se representa mediante su grosor. Esto ayuda a mostrar cómo se distribuye geográficamente la migración.
+
+![](https://datavizcatalogue.com/methods/images/anatomy/flow_map.png)
+
+## Cartogramas
+
+Un cartograma es un tipo de mapa donde diferentes áreas geográficas son modificadas en base a una variable asociada a esas áreas.
+
+Aunque los cartogramas pueden ser visualmente atractivos, requieren un conocimiento previo de la geografía representada, ya que los tamaños y los límites de las geografías son alterados.
+
+![](https://r-charts.com/es/espacial/cartograma-ggplot2_files/figure-html/cartograma-ggplot2.png){width="533"}
+
+# Tipos de archivos
+
+## Geodesias y polígonos de Argentina
+
+Para dibujar mapas de áreas (como provincias), necesitamos archivos que definan la geometría (los bordes) de esas áreas. Estos archivos suelen ser GeoJSON, Shapefiles, etc.
+
+El Instituto Geográfico Nacional nos provee en su web los archivos para dibujar la forma de nuestro país. Todas las capas GIS podes encontrarlas en <https://www.ign.gob.ar/NuestrasActividades/InformacionGeoespacial/CapasSIG>.
+
+> En esta clase trabajamos con el geojson proporcionado por el sitio de datos abiertos de la Provincia de Buenos Aires disponibles en [https://catalogo.datos.gba.gob.ar/dataset/partidos](#0)
+
+## Librerías que vamos a ver hoy
 
 -   `sf{}`(simple shapes): que nos ayuda en la interpretación geométrica del multi-poligono
 
@@ -11,11 +107,18 @@ Librerías que vamos a ver hoy
 
 -   `leaflet` para hacer gráficos dinámicos en java
 
+::: callout-tip
+## geo_ar un set de herramientas local
 
+[geoAr](https://github.com/PoliticaArgentina/geoAr) brinda herramientas que facilitan el acceso y el trabajo con datos espaciales de Argentina desde `R` y es parte **del [universo de paquetes polAr](https://github.com/PoliticaArgentina/polArverse)** desarrollado por un equipo de desarrolladores de R argentinos: Juan Pablo Ruiz Nicolini, Patricio Del Boca y Juan Gabriel Juara. \
+Algunas de sus funciones como `show_arg_code()` y `get_geo()` nos facilitan la tarea a la hora de trabajar con códigos y geodesias. Al basarse en los datos censales 2010 algunos niveles han quedado desactualizados pero para los grandes niveles (ej. provincias) aún es de utilidad.
 
-## Antes de arrancar cargamos la geometría de los partidos
+![](https://github.com/PoliticaArgentina/data_warehouse/raw/master/hex/collage.png)
+:::
 
-https://catalogo.datos.gba.gob.ar/dataset/partidos
+# Manos al código
+
+Arranquemos por cargar las librerías que necesitamos
 
 ```{r}
 library(tidyverse) # ya nos incluye ggplot
@@ -24,13 +127,15 @@ library(stringi) # nomas por un temita de como vienen escritos los partidos
 library(leaflet)
 ```
 
-Traemos los datos geo
+## Antes de arrancar cargamos la geometría de los partidos
+
+Traemos los datos geo \
 
 ```{r}
 geo_data <- st_read("D:/clases_eva/clases/data_raw/limites-partidos/partidos.geojson")
 ```
 
-Cargamos el df de nuestros clusters
+Cargamos el df de nuestros clusters el cual también está disponible en [este enlace](https://github.com/BetsyCohen/clases_eva/blob/master/clases/data_raw/clustersxpart.csv)
 
 ```{r}
 cluster_data <- read.csv("D:/clases_eva/clases/data_raw/clustersxpart.csv") |> 
@@ -119,15 +224,11 @@ Para crear un mapa tenemos 4 pasos básicos
 
 4.  Imprimimos el widget de mapa para mostrarlo.
 
-
-
-
-### El "problemita" de las capas de por defecto de `addTiles` 
+### El "problemita" de las capas de por defecto de `addTiles`
 
 `addTiles` es muy linda como mapa base (es la que viene por defecto) y nos trae la capa de OpenStreetMap. Con la función setView() lo podemos centrar para que no nos muestre todo el mapa mundial.
 
 Sin embargo (como en muchas cosas) si hacemos zoom vamos a ver un pequeño sesgo político importante al mirar hacia el sur:
-
 
 ```{r}
 leaflet() %>%
@@ -135,22 +236,21 @@ leaflet() %>%
   setView(lng = -63, lat = -39, zoom = 5) # Centrar en Buenos Aires
 ```
 
-Para evitarlo usamos la capa con `addPolygons()` el servicio de **Argenmap v2** tal cual lo sugiere la bióloga Natalia Morandeiro en [este post](https://nmorandeira.netlify.app/post/2020-08-02-representar-islas-malvinas-en-r-y-qgis/) 
+Para evitarlo usamos la capa con `addPolygons()` el servicio de **Argenmap v2** tal cual lo sugiere la bióloga Natalia Morandeiro en [este post](https://nmorandeira.netlify.app/post/2020-08-02-representar-islas-malvinas-en-r-y-qgis/)
 
-### Tips básicos: 
+### Tips básicos:
 
-- Dentro de leaflet las referencias a columnas tienen que ir con \~ o explícitamente (ej. geo_data\$cluster). 
+-   Dentro de leaflet las referencias a columnas tienen que ir con \~ o explícitamente (ej. geo_data\$cluster).
 
-- La función `colorFactor()` nos crea una paleta para variable factorial pero si fuera numérica usamos `colorNumeric()`
+-   La función `colorFactor()` nos crea una paleta para variable factorial pero si fuera numérica usamos `colorNumeric()`
 
-- Para saber la lat y long lo veo en la info del Bounding box de mi geometría 
-
+-   Para saber la lat y long lo veo en la info del Bounding box de mi geometría
 
 ```{r}
 geo_data
 ```
 
-Creamos una paleta de colores para el mapa interactivo de coropletas yo elgí la paleta Yellow-Green-Blue pero hay otras 
+Creamos una paleta de colores para el mapa interactivo de coropletas yo elgí la paleta Yellow-Green-Blue pero hay otras
 
 ```{r}
 pal_leaflet <- colorFactor(
@@ -160,9 +260,7 @@ pal_leaflet <- colorFactor(
 )
 ```
 
-
 Creamos el mapa leaflet
-
 
 ```{r}
 
