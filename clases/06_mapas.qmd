@@ -110,7 +110,7 @@ El Instituto Geográfico Nacional nos provee en su web los archivos para dibujar
 ::: callout-tip
 ## geo_ar un set de herramientas local
 
-[geoAr](https://github.com/PoliticaArgentina/geoAr) brinda herramientas que facilitan el acceso y el trabajo con datos espaciales de Argentina desde `R` y es parte **del [universo de paquetes polAr](https://github.com/PoliticaArgentina/polArverse)** desarrollado por un equipo de desarrolladores de R argentinos: Juan Pablo Ruiz Nicolini, Patricio Del Boca y Juan Gabriel Juara. \
+[geoAr](https://github.com/PoliticaArgentina/geoAr) brinda herramientas que facilitan el acceso y el trabajo con datos espaciales de Argentina desde `R` y es parte **del [universo de paquetes polAr](https://github.com/PoliticaArgentina/polArverse)** desarrollado por un equipo de desarrolladores de R argentinos: Juan Pablo Ruiz Nicolini, Patricio Del Boca y Juan Gabriel Juara.\
 Algunas de sus funciones como `show_arg_code()` y `get_geo()` nos facilitan la tarea a la hora de trabajar con códigos y geodesias. Al basarse en los datos censales 2010 algunos niveles han quedado desactualizados pero para los grandes niveles (ej. provincias) aún es de utilidad.
 
 ![](https://github.com/PoliticaArgentina/data_warehouse/raw/master/hex/collage.png)
@@ -129,7 +129,7 @@ library(leaflet)
 
 ## Antes de arrancar cargamos la geometría de los partidos
 
-Traemos los datos geo \
+Traemos los datos geo\
 
 ```{r}
 geo_data <- st_read("D:/clases_eva/clases/data_raw/limites-partidos/partidos.geojson")
