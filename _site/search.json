@@ -186,13 +186,83 @@
     "href": "clases/06_mapas.html",
     "title": "Mapas",
     "section": "",
-    "text": "Librerías que vamos a ver hoy"
+    "text": "Sistemas de coordenadas de referencia (CRS) (el más conocido lat-long)\nProyecciones cartográficas, instrucciones para traducir a un plano la disposición de puntos ubicados en la esfera terrestre.\nEn toda proyección (como en cualquier traducción), los mapas, inevitablemente, son una versión distorsionada ya que no podemos pasar de la esfera al plano sin desformar la superficie, distancia.\n\n\n\n\n\n\nLa proyección más famosa es la Mercator, diseñada para asistir la navegación marítima y en uso desde el siglo XVI. Su fuerte es que no distorsiona las direcciones, por lo que permite fijar el rumbo de navegación consultando el mapa. Su principal problema es que produce una distorsión notable en las áreas cercanas a los polos: Groenlandia aparenta el mismo tamaño que toda África, cuando en realidad tiene sólo un quinceavo de su superficie. Por esa razón perdió la proyección popularidad en el siglo XX cuando comenzaron a preferirse proyecciones que respetan las áreas. Sin embargo, en el siglo XXI la proyección Mercator recuperó protagonismo. Google la eligió para sus mapas en línea, y por razones de compatibilidad otros proveedores de mapas digitales la adoptaron también. Así, y para inconsolable irritación de los geógrafos, Mercator se convirtió en el estándar de facto para aplicaciones geográficas en la web.\nEn la práctica, si trabajamos en forma frecuente con archivos georreferenciados vamos a sufrir tarde o temprano de problemas de coordenadas o proyección. El más común de ellos: tener una fuentes de datos geográficos que no podemos comparar con otras, porque desconocemos el sistema de coordenadas que se usó para crearla; es decir, no podemos saber a que posición sobre el planeta corresponde cada observación en los datos."
   },
   {
     "objectID": "clases/06_mapas.html#antes-de-arrancar-cargamos-la-geometría-de-los-partidos",
     "href": "clases/06_mapas.html#antes-de-arrancar-cargamos-la-geometría-de-los-partidos",
     "title": "Mapas",
     "section": "Antes de arrancar cargamos la geometría de los partidos",
-    "text": "Antes de arrancar cargamos la geometría de los partidos\nhttps://catalogo.datos.gba.gob.ar/dataset/partidos\n\nlibrary(tidyverse) # ya nos incluye ggplot\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.6\n✔ forcats   1.0.1     ✔ stringr   1.6.0\n✔ ggplot2   4.0.1     ✔ tibble    3.3.0\n✔ lubridate 1.9.4     ✔ tidyr     1.3.1\n✔ purrr     1.2.0     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(sf) # Para trabajar con datos geoespaciales\n\nLinking to GEOS 3.13.1, GDAL 3.11.4, PROJ 9.7.0; sf_use_s2() is TRUE\n\nlibrary(stringi) # nomas por un temita de como vienen escritos los partidos\nlibrary(leaflet)\n\nTraemos los datos geo\n\ngeo_data &lt;- st_read(\"D:/clases_eva/clases/data_raw/limites-partidos/partidos.geojson\")\n\nReading layer `partidos' from data source \n  `D:\\clases_eva\\clases\\data_raw\\limites-partidos\\partidos.geojson' \n  using driver `GeoJSON'\nSimple feature collection with 143 features and 8 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: -63.39 ymin: -41.04 xmax: -56.66 ymax: -33.26\nGeodetic CRS:  WGS 84\n\n\nCargamos el df de nuestros clusters\n\ncluster_data &lt;- read.csv(\"D:/clases_eva/clases/data_raw/clustersxpart.csv\") |&gt; \n  distinct(nomdepto_censo,.keep_all = T)\n\nPara unir ambos datos hacemos algunas transformaciones\n\ngeo_data &lt;- geo_data |&gt; \n  mutate(\n    nomdepto_censo = nam |&gt; \n      # le sacamos las tildes y caracteres espciales\n      stri_trans_general(\"Latin-ASCII\") |&gt; \n      toupper() |&gt; \n      trimws() |&gt; \n      # excepto el caso de cañuelas que quiere tener ñ\n      str_replace(\"CANUELAS\", \"CAÑUELAS\")\n  )|&gt; \n  # unimos ambas tablas\n  left_join(cluster_data, by = join_by(nomdepto_censo))\n\n# geo_data |&gt; \n#   janitor::tabyl(cluster)\n# \n# cluster_data |&gt; \n#   janitor::tabyl(cluster)\n\nLe ponemos nombres a los clusters\n\ngeo_data&lt;- geo_data |&gt; \n  mutate(cluster = case_when(cluster == 1 ~ \"Cluster 1\",\n                             cluster == 2 ~ \"Cluster 2\",\n                             cluster == 3 ~ \"Cluster 3\",\n                             ))\n\ngeo_data |&gt; \n  janitor::tabyl(cluster)\n\n clustergeometry  n    percent valid_percent\n       Cluster 1 97 0.67832168    0.78861789\n       Cluster 2 19 0.13286713    0.15447154\n       Cluster 3  7 0.04895105    0.05691057\n            &lt;NA&gt; 20 0.13986014            NA"
+    "text": "Antes de arrancar cargamos la geometría de los partidos\nTraemos los datos geo\n\n\ngeo_data &lt;- st_read(\"D:/clases_eva/clases/data_raw/limites-partidos/partidos.geojson\")\n\nReading layer `partidos' from data source \n  `D:\\clases_eva\\clases\\data_raw\\limites-partidos\\partidos.geojson' \n  using driver `GeoJSON'\nSimple feature collection with 143 features and 8 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: -63.39 ymin: -41.04 xmax: -56.66 ymax: -33.26\nGeodetic CRS:  WGS 84\n\n\nCargamos el df de nuestros clusters el cual también está disponible en este enlace\n\ncluster_data &lt;- read.csv(\"D:/clases_eva/clases/data_raw/clustersxpart.csv\") |&gt; \n  distinct(nomdepto_censo,.keep_all = T)\n\nPara unir ambos datos hacemos algunas transformaciones\n\ngeo_data &lt;- geo_data |&gt; \n  mutate(\n    nomdepto_censo = nam |&gt; \n      # le sacamos las tildes y caracteres espciales\n      stri_trans_general(\"Latin-ASCII\") |&gt; \n      toupper() |&gt; \n      trimws() |&gt; \n      # excepto el caso de cañuelas que quiere tener ñ\n      str_replace(\"CANUELAS\", \"CAÑUELAS\")\n  )|&gt; \n  # unimos ambas tablas\n  left_join(cluster_data, by = join_by(nomdepto_censo))\n\n# geo_data |&gt; \n#   janitor::tabyl(cluster)\n# \n# cluster_data |&gt; \n#   janitor::tabyl(cluster)\n\nLe ponemos nombres a los clusters\n\ngeo_data&lt;- geo_data |&gt; \n  mutate(cluster = case_when(cluster == 1 ~ \"Cluster 1\",\n                             cluster == 2 ~ \"Cluster 2\",\n                             cluster == 3 ~ \"Cluster 3\",\n                             ))\n\ngeo_data |&gt; \n  janitor::tabyl(cluster)\n\n clustergeometry  n    percent valid_percent\n       Cluster 1 97 0.67832168    0.78861789\n       Cluster 2 19 0.13286713    0.15447154\n       Cluster 3  7 0.04895105    0.05691057\n            &lt;NA&gt; 20 0.13986014            NA"
+  },
+  {
+    "objectID": "clases/06_mapas.html#trabajar-con-mapas-es-presentar-sobre-un-plano-la-tierra-y-su-superficie-irregular",
+    "href": "clases/06_mapas.html#trabajar-con-mapas-es-presentar-sobre-un-plano-la-tierra-y-su-superficie-irregular",
+    "title": "Mapas",
+    "section": "",
+    "text": "Sistemas de coordenadas de referencia (CRS) (el más conocido lat-long)\nProyecciones cartográficas, instrucciones para traducir a un plano la disposición de puntos ubicados en la esfera terrestre.\nEn toda proyección (como en cualquier traducción), los mapas, inevitablemente, son una versión distorsionada ya que no podemos pasar de la esfera al plano sin desformar la superficie, distancia.\n\n\n\n\n\n\nLa proyección más famosa es la Mercator, diseñada para asistir la navegación marítima y en uso desde el siglo XVI. Su fuerte es que no distorsiona las direcciones, por lo que permite fijar el rumbo de navegación consultando el mapa. Su principal problema es que produce una distorsión notable en las áreas cercanas a los polos: Groenlandia aparenta el mismo tamaño que toda África, cuando en realidad tiene sólo un quinceavo de su superficie. Por esa razón perdió la proyección popularidad en el siglo XX cuando comenzaron a preferirse proyecciones que respetan las áreas. Sin embargo, en el siglo XXI la proyección Mercator recuperó protagonismo. Google la eligió para sus mapas en línea, y por razones de compatibilidad otros proveedores de mapas digitales la adoptaron también. Así, y para inconsolable irritación de los geógrafos, Mercator se convirtió en el estándar de facto para aplicaciones geográficas en la web.\nEn la práctica, si trabajamos en forma frecuente con archivos georreferenciados vamos a sufrir tarde o temprano de problemas de coordenadas o proyección. El más común de ellos: tener una fuentes de datos geográficos que no podemos comparar con otras, porque desconocemos el sistema de coordenadas que se usó para crearla; es decir, no podemos saber a que posición sobre el planeta corresponde cada observación en los datos."
+  },
+  {
+    "objectID": "clases/06_mapas.html#tipo-de-datos-en-un-mapa",
+    "href": "clases/06_mapas.html#tipo-de-datos-en-un-mapa",
+    "title": "Mapas",
+    "section": "Tipo de datos en un mapa",
+    "text": "Tipo de datos en un mapa\n\nPuntos\nLíneas\nMultipolígonos"
+  },
+  {
+    "objectID": "clases/06_mapas.html#formatos-de-archivos-georreferenciados",
+    "href": "clases/06_mapas.html#formatos-de-archivos-georreferenciados",
+    "title": "Mapas",
+    "section": "Formatos de archivos georreferenciados",
+    "text": "Formatos de archivos georreferenciados\n\nshapefile: creado por ESRI (creadores de ArcGIS) tiene varios archivos que por lo general vienen combinados en un zip los nombres de las variables tienen que tener 10 caracteres o menos (la gente se pone creativa con las abreviaturas)\nGeoJSON:una alteranriva más feliz y de código abierto que corrige estos problemas\nKML/KMZ: el formato que usa Google Earth\ncsv: representando puntos de latitud y longitud (por lo cual solo podremos dibujar puntos y líneas)"
+  },
+  {
+    "objectID": "clases/06_mapas.html#mapa-de-puntos",
+    "href": "clases/06_mapas.html#mapa-de-puntos",
+    "title": "Mapas",
+    "section": "Mapa de puntos",
+    "text": "Mapa de puntos\nLos mapas de puntos son una forma de detectar patrones espaciales o la distribución de datos en una región geográfica, colocando puntos de igual tamaño sobre una región geográfica.\nHay dos tipos de mapas de puntos: uno a uno (un punto representa un único recuento u objeto) y uno a muchos (un punto representa una unidad particular, por ejemplo, 1 punto = 10 árboles)."
+  },
+  {
+    "objectID": "clases/06_mapas.html#coropletas",
+    "href": "clases/06_mapas.html#coropletas",
+    "title": "Mapas",
+    "section": "Coropletas",
+    "text": "Coropletas\nEn los mapas de coropletas diferentes áreas geográficas se colorean en base a una variable asociada a esas áreas.\nEste tipo de gráfico proporciona de manera intuitiva cómo una determinada variable (la población, los ingresos, …) varían entre las diferentes áreas."
+  },
+  {
+    "objectID": "clases/06_mapas.html#mapa-de-burbujas",
+    "href": "clases/06_mapas.html#mapa-de-burbujas",
+    "title": "Mapas",
+    "section": "Mapa de burbujas",
+    "text": "Mapa de burbujas\nEl mapa de burbujas usa símbolos proporcionales para representar cómo una variable varía sobre diferentes áreas geográficas. El símbolo usado es por lo general un círculo, cuyo diámetro depende del valor de la variable de interés.\nSon una alternativa a las coropletas con un poquito más de complejidad ya que necesitamos calcular el centroide de cada región.\nUna contra es que las burbujas demasiado grandes pueden superponerse a otras burbujas y regiones del mapa, por lo que esto debe tenerse en cuenta, ya que a veces podemos resolverlo con transparencias y a veces no."
+  },
+  {
+    "objectID": "clases/06_mapas.html#mapas-de-conexiones-y-mapas-de-flujos",
+    "href": "clases/06_mapas.html#mapas-de-conexiones-y-mapas-de-flujos",
+    "title": "Mapas",
+    "section": "Mapas de conexiones y mapas de flujos",
+    "text": "Mapas de conexiones y mapas de flujos\nLos mapas de conexión se dibujan conectando puntos colocados en un mapa mediante líneas rectas o curvas.\nPueden usarse para mostrar rutas de una sola cadena de enlaces. Además, pueden ser útiles para revelar patrones espaciales mediante la distribución de conexiones o su concentración en un punto del mapa.\n\nLos mapas de flujo son parecidos a los mapas de conexiones pero incluyen además una tercera dimensión de magnitud.\nPor lo general, se utilizan para mostrar datos sobre la migración de personas o productos.\nLa magnitud o cantidad de migración en una sola línea de flujo se representa mediante su grosor. Esto ayuda a mostrar cómo se distribuye geográficamente la migración."
+  },
+  {
+    "objectID": "clases/06_mapas.html#cartogramas",
+    "href": "clases/06_mapas.html#cartogramas",
+    "title": "Mapas",
+    "section": "Cartogramas",
+    "text": "Cartogramas\nUn cartograma es un tipo de mapa donde diferentes áreas geográficas son modificadas en base a una variable asociada a esas áreas.\nAunque los cartogramas pueden ser visualmente atractivos, requieren un conocimiento previo de la geografía representada, ya que los tamaños y los límites de las geografías son alterados."
+  },
+  {
+    "objectID": "clases/06_mapas.html#geodesias-y-polígonos-de-argentina",
+    "href": "clases/06_mapas.html#geodesias-y-polígonos-de-argentina",
+    "title": "Mapas",
+    "section": "Geodesias y polígonos de Argentina",
+    "text": "Geodesias y polígonos de Argentina\nPara dibujar mapas de áreas (como provincias), necesitamos archivos que definan la geometría (los bordes) de esas áreas. Estos archivos suelen ser GeoJSON, Shapefiles, etc.\nEl Instituto Geográfico Nacional nos provee en su web los archivos para dibujar la forma de nuestro país. Todas las capas GIS podes encontrarlas en https://www.ign.gob.ar/NuestrasActividades/InformacionGeoespacial/CapasSIG.\n\nEn esta clase trabajamos con el geojson proporcionado por el sitio de datos abiertos de la Provincia de Buenos Aires disponibles en https://catalogo.datos.gba.gob.ar/dataset/partidos"
+  },
+  {
+    "objectID": "clases/06_mapas.html#librerías-que-vamos-a-ver-hoy",
+    "href": "clases/06_mapas.html#librerías-que-vamos-a-ver-hoy",
+    "title": "Mapas",
+    "section": "Librerías que vamos a ver hoy",
+    "text": "Librerías que vamos a ver hoy\n\nsf{}(simple shapes): que nos ayuda en la interpretación geométrica del multi-poligono\ngglot que nos va a servir para hacer mapas estáticos\nleaflet para hacer gráficos dinámicos en java\n\n\n\n\n\n\n\nTipgeo_ar un set de herramientas local\n\n\n\ngeoAr brinda herramientas que facilitan el acceso y el trabajo con datos espaciales de Argentina desde R y es parte del universo de paquetes polAr desarrollado por un equipo de desarrolladores de R argentinos: Juan Pablo Ruiz Nicolini, Patricio Del Boca y Juan Gabriel Juara.\nAlgunas de sus funciones como show_arg_code() y get_geo() nos facilitan la tarea a la hora de trabajar con códigos y geodesias. Al basarse en los datos censales 2010 algunos niveles han quedado desactualizados pero para los grandes niveles (ej. provincias) aún es de utilidad."
   }
 ]
