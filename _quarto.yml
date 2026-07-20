@@ -20,7 +20,9 @@ website:
         - href: clases/05_tableros_quarto.qmd
           text: Tableros
         - href: clases/06_mapas.qmd
-          text: Mapas    
+          text: Mapas 
+        - href: clases/07_respuestas_multiples.qmd
+          text: Respuestas multiples      
       - href: recursos.qmd
         text: Recursos
       - href: about.qmd
