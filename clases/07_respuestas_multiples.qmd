@@ -38,13 +38,9 @@ clientes <- tribble(
 glimpse(clientes)
 ```
 
-
 ## Ejemplo 1: ¿De cuáles de los siguientes productos es titular?
 
-□ Cuenta corriente
-□ Caja de ahorro en pesos
-□ Visa
-□ Master
+□ Cuenta corriente □ Caja de ahorro en pesos □ Visa □ Master
 
 ```{r}
 gastos_credito <- clientes %>%
@@ -63,7 +59,6 @@ gastos_credito <- clientes %>%
 gastos_credito
 ```
 
-
 y después podemos decir : las categorías más usadas son...
 
 ```{r}
@@ -71,6 +66,7 @@ gastos_credito %>%
   filter(uso) %>%
   count(categoria, sort = TRUE)
 ```
+
 y agregar por ej info sobrte el gasto promedio de los gastos
 
 ```{r}
@@ -110,6 +106,7 @@ principal_rubro_credito <- clientes %>%
 
 principal_rubro_credito
 ```
+
 Después ya podés analizarla como una variable categórica común:
 
 ```{r}
@@ -117,6 +114,9 @@ principal_rubro_credito %>%
   count(principal_rubro, sort = TRUE)
 ```
 
+## Recordatorio graficos gagues o manómetros
 
-
-
+::: callout-note
+<https://plotly.com/r/gauge-charts/>\
+<https://echarts4r.john-coene.com/reference/e_gauge.html>
+:::
