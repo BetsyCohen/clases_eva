@@ -1,0 +1,122 @@
+---
+title: "Preguntas de respuesta multiple y simple"
+format: html
+---
+
+```{r}
+#| label: "setup"
+#| echo: true
+
+# librerias
+library(tidyverse)
+library(tibble)
+
+# creo un dataset de demostración para el ejercicio suponiendo que cada fila es un cliente
+
+clientes <- tribble(
+  ~id_cliente, ~edad, ~sexo,
+  ~titular_cuenta_corriente, ~titular_caja_ahorro_pesos, ~titular_visa, ~titular_master,
+  ~mto_supermercados_y_alimentos_credito,
+  ~mto_supermercados_y_alimentos_debito,
+  ~mto_indumentaria_credito,
+  ~mto_indumentaria_debito,
+  ~mto_combustible_credito,
+  ~mto_combustible_debito,
+  ~mto_bares_restaurantes_fastfoo_credito,
+  ~mto_bares_restaurantes_fastfoo_debito,
+
+  1, 25, "Mujer",  0, 1, 1, 0, 12000,  5000,  3000,    0,    0, 2500, 1500,    0,
+  2, 42, "Varón",  1, 1, 1, 1, 25000,     0,     0, 4000, 5000,    0,    0, 3500,
+  3, 31, "Mujer",  0, 1, 0, 0,     0, 12000,     0,    0,    0,    0, 2000, 1000,
+  4, 58, "Varón",  1, 1, 1, 0, 18000,  8000, 12000,    0, 8000,    0,    0,    0,
+  5, 22, "Mujer",  0, 1, 0, 0,  6000,  2000,  1500, 1000,    0,    0, 3000, 2500,
+  6, 37, "Varón",  1, 1, 1, 1,     0,     0,  7000, 5000, 3000, 2000,    0, 1500,
+  7, 29, "Mujer",  0, 1, 1, 0,  9000,  3000,     0,    0,    0,    0, 4500,    0,
+  8, 50, "Varón",  1, 1, 1, 1, 30000, 10000,  5000, 2500, 6000, 3500,    0, 2000
+)
+
+glimpse(clientes)
+```
+
+
+## Ejemplo 1: ¿De cuáles de los siguientes productos es titular?
+
+□ Cuenta corriente
+□ Caja de ahorro en pesos
+□ Visa
+□ Master
+
+```{r}
+gastos_credito <- clientes %>%
+  pivot_longer(
+    starts_with("mto_") & ends_with("_credito"),
+    names_to = "categoria",
+    values_to = "monto"
+  ) %>%
+  mutate(
+    uso = monto > 0,
+    categoria = categoria |>
+      stringr::str_remove("^mto_") |>
+      stringr::str_remove("_credito$")
+  )
+
+gastos_credito
+```
+
+
+y después podemos decir : las categorías más usadas son...
+
+```{r}
+gastos_credito %>%
+  filter(uso) %>%
+  count(categoria, sort = TRUE)
+```
+y agregar por ej info sobrte el gasto promedio de los gastos
+
+```{r}
+gastos_credito %>%
+  filter(monto > 0) %>%
+  group_by(categoria) %>%
+  summarise(
+    promedio = mean(monto),
+    mediana = median(monto),
+    n = n()
+  )
+```
+
+vamos a construir una pregunta de respuesta única: ¿Cuál fue el principal rubro de gasto con tarjeta de crédito?
+
+```{r}
+principal_rubro_credito <- clientes %>%
+  pivot_longer(
+    starts_with("mto_") & ends_with("_credito"),
+    names_to = "categoria",
+    values_to = "monto"
+  ) %>%
+  mutate(
+    categoria = categoria |>
+      str_remove("^mto_") |>
+      str_remove("_credito$")
+  ) %>%
+  group_by(id_cliente) %>%
+  slice_max(
+    monto,
+    n = 1,
+    with_ties = FALSE
+  ) %>%
+  ungroup() %>%
+  select(id_cliente, principal_rubro = categoria)
+
+
+principal_rubro_credito
+```
+Después ya podés analizarla como una variable categórica común:
+
+```{r}
+principal_rubro_credito %>%
+  count(principal_rubro, sort = TRUE)
+```
+
+
+
+
