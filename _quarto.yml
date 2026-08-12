@@ -22,7 +22,9 @@ website:
         - href: clases/06_mapas.qmd
           text: Mapas 
         - href: clases/07_respuestas_multiples.qmd
-          text: Respuestas multiples      
+          text: Respuestas multiples
+        - href: clases/03_repaso_regresiones_lineales.qmd
+          text: Respuestas multiples   
       - href: recursos.qmd
         text: Recursos
       - href: about.qmd

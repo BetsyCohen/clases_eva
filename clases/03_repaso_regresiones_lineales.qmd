@@ -1,0 +1,502 @@
+---
+title: "Repaso: Regresión lineal simple y múltiple en R"
+subtitle: "Aplicado a datos de consumo bancario"
+author: "Betsy Cohen"
+format: 
+  html:
+    toc: true
+    embed-resources: true
+    theme: minty
+editor: visual
+---
+
+## ¿Por qué volvemos sobre esto?
+
+Ya vimos regresión lineal una vez, pero pasó tiempo y es totalmente normal que las ideas se hayan desdibujado. Nada de esto es un examen: es un repaso guiado, pensado además con ejemplos de **consumo de usuarios/as**, que es justo el terreno en el que trabajás todos los días en el banco.
+
+La idea de esta clase es:
+
+1.  Refrescar los conceptos clave (algunos ya los vimos, otros los sumamos ahora porque son imprescindibles para leer un modelo con confianza).
+2.  Practicar con un dataset simulado de clientes bancarios (edad, ingreso, tipo de cuenta, gasto con tarjeta) para que cada resultado se sienta cercano a tu trabajo real.
+3.  Resolver ejercicios cortos, con una posible solución escondida debajo por si querés compararla con la tuya.
+
+::: callout-note
+El dataset que vamos a usar es **inventado** (simulado con código), no son datos reales del banco. Sirve para practicar sin comprometer información sensible. Al final de la clase te propongo cómo trasladar exactamente el mismo flujo de trabajo a una base real y anonimizada.
+:::
+
+## Repaso relámpago: ¿qué es un modelo de regresión?
+
+Un modelo es una simplificación de la realidad que nos ayuda a **predecir** o **explicar** una variable.
+
+-   **Variable dependiente (y):** lo que queremos explicar o predecir. En nuestros ejemplos: cuánto gasta un/a cliente por mes con su tarjeta.
+-   **Variable(s) independiente(s) o explicativas (x):** lo que usamos para explicar esa variable. Por ejemplo: el ingreso mensual, la antigüedad como cliente, el tipo de cuenta.
+
+La ecuación de siempre:
+
+$$y = a + b \times x$$
+
+-   **a (intercept / ordenada al origen):** el valor esperado de y cuando x = 0.
+-   **b (pendiente / coeficiente):** cuánto cambia y, en promedio, cuando x aumenta en una unidad.
+
+Con más de una variable explicativa, la misma lógica se extiende:
+
+$$y = a + b_1 x_1 + b_2 x_2 + ... + b_k x_k$$
+
+Cada $b$ ahora se interpreta "manteniendo todo lo demás constante".
+
+## Glosario exprés (guardátelo a mano)
+
+Vamos a ir usando estos términos todo el tiempo. Antes de meternos en el código, una tabla de referencia rápida:
+
+| Término | Qué significa, en criollo | Dónde lo vemos en R |
+|--------------------|------------------------------|----------------------|
+| Coeficiente (Estimate) | El efecto estimado de esa variable sobre la dependiente | `summary(modelo)`, `broom::tidy()` |
+| Error estándar (Std. Error) | Cuánto podría variar ese coeficiente si repitiéramos el estudio con otra muestra | columna `Std. Error` |
+| Estadístico t (t value) | El coeficiente dividido por su error estándar; entre más lejos de 0, más "raro" sería que el efecto real fuera cero | columna `t value` |
+| p-valor (Pr(\>\|t\|)) | Qué tan compatible es lo que observamos con la idea de que esa variable en realidad no tiene efecto | columna `Pr(>|t|)` |
+| Nivel de significancia (alfa) | El umbral que elegimos de antemano para decidir "esto es lo bastante raro como para no ser casualidad" (por convención, 0,05) | lo definimos nosotros, no lo calcula R |
+| R² | Qué porcentaje de la variabilidad de y explica el modelo | `summary(modelo)$r.squared`, `broom::glance()` |
+| R² ajustado | Lo mismo, pero penalizando por sumar variables que no aportan | `summary(modelo)$adj.r.squared` |
+| Intervalo de confianza | Un rango de valores plausibles para el verdadero efecto poblacional | `confint(modelo)` |
+| Residuo | La diferencia entre lo observado y lo que predice el modelo | `residuals(modelo)` |
+| VIF | Qué tanto se "pisan" entre sí las variables explicativas (multicolinealidad) | `car::vif(modelo)` |
+
+No hace falta memorizar esto: la idea es que lo tengas cerca mientras leemos las salidas de R.
+
+## Manos a la obra: armamos un dataset de juguete
+
+```{r}
+# Cargamos las librerías necesarias
+library(tidyverse)
+library(broom)
+library(car)
+library(lmtest)
+```
+
+Simulamos una cartera de clientes ficticia, con variables parecidas a las que manejás en el día a día: edad, antigüedad como cliente, tipo de cuenta, ingreso mensual declarado, límite de crédito y gasto mensual con tarjeta.
+
+```{r}
+set.seed(2026)
+n <- 300
+
+clientes <- tibble(
+  cliente_id = 1:n,
+  edad = pmin(pmax(round(rnorm(n, mean = 42, sd = 12)), 18), 80),
+  antiguedad_cliente = round(runif(n, 0, 20)),
+  tipo_cuenta = sample(c("Clásica", "Premium", "Digital"),
+                        size = n, replace = TRUE, prob = c(0.5, 0.2, 0.3)),
+  ingreso_mensual = pmax(round(rnorm(n, mean = 800, sd = 250)), 150)
+) %>% 
+  mutate(
+    # el límite de crédito casi siempre se arma en base al ingreso -> esto nos va a servir más adelante
+    limite_credito = round(ingreso_mensual * 1.8 + rnorm(n, 0, 20)),
+    bono_por_cuenta = case_when(
+      tipo_cuenta == "Premium" ~ 120,
+      tipo_cuenta == "Digital" ~ -30,
+      TRUE ~ 0
+    ),
+    gasto_tarjeta_mensual = pmax(round(
+      50 + 0.35 * ingreso_mensual + bono_por_cuenta + 3 * antiguedad_cliente + rnorm(n, 0, 80)
+    ), 0)
+  ) %>% 
+  select(-bono_por_cuenta)
+
+glimpse(clientes)
+```
+
+Chequeamos distribución y valores raros, tal como hacíamos antes de meternos con cualquier modelo:
+
+```{r}
+clientes %>% 
+  mutate(across(where(is.character), as.factor)) %>% 
+  summary()
+```
+
+## Pregunta central de este repaso
+
+> ¿En qué medida el ingreso mensual de un/a cliente influye sobre su gasto mensual con tarjeta?
+
+**Variable dependiente:** gasto_tarjeta_mensual
+
+**Variable independiente:** ingreso_mensual
+
+Hipótesis nula (H₀): el ingreso no tiene efecto significativo sobre el gasto con tarjeta.\
+Hipótesis alternativa (H₁): el ingreso sí tiene efecto significativo sobre el gasto con tarjeta.
+
+## Paso 1: mirar los datos antes de modelar
+
+```{r}
+clientes %>% 
+  ggplot(aes(x = ingreso_mensual, y = gasto_tarjeta_mensual)) +
+  geom_point(alpha = 0.5) +
+  labs(title = "Relación entre ingreso mensual y gasto con tarjeta",
+       x = "Ingreso mensual",
+       y = "Gasto mensual con tarjeta")
+```
+
+## Paso 2: correlación
+
+```{r}
+cor(clientes$ingreso_mensual, clientes$gasto_tarjeta_mensual)
+```
+
+**¿A partir de qué valor consideramos que hay una correlación apreciable?** (esta tabla ya la habíamos visto, la repetimos porque es de consulta constante)
+
+-   de 0,7 a 1: de fuerte a total
+-   de 0,5 a 0,6: de moderada a fuerte
+-   de 0,3 a 0,4: de débil a moderada
+-   menor a 0,3: de nula a débil
+
+## Paso 3: el modelo de regresión simple
+
+```{r}
+modelo_simple <- lm(gasto_tarjeta_mensual ~ ingreso_mensual, data = clientes)
+
+modelo_simple
+```
+
+Con `broom::tidy()` obtenemos la misma información que da `summary()`, pero en formato tabla ordenada (tidy), mucho más cómodo para seguir trabajando con dplyr o para exportar:
+
+```{r}
+broom::tidy(modelo_simple)
+```
+
+Y con `broom::glance()` obtenemos un resumen de "salud general" del modelo (R², R² ajustado, el p-valor global, etc.) en una sola fila:
+
+```{r}
+broom::glance(modelo_simple)
+```
+
+También vale la pena ver la salida clásica de `summary()`, porque es la que te vas a cruzar en la mayoría de los tutoriales, papers y foros:
+
+```{r}
+summary(modelo_simple)
+```
+
+Y la visualizamos con la recta de regresión:
+
+```{r}
+clientes %>% 
+  ggplot(aes(x = ingreso_mensual, y = gasto_tarjeta_mensual)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(title = "Ingreso mensual y gasto con tarjeta, con recta de regresión",
+       x = "Ingreso mensual",
+       y = "Gasto mensual con tarjeta")
+```
+
+### Cómo leer esto, línea por línea
+
+Para la fila `ingreso_mensual` del `summary()`:
+
+-   **Estimate:** por cada peso adicional de ingreso mensual, el gasto con tarjeta aumenta, en promedio, en esa cantidad.
+-   **Std. Error:** el margen de "ruido" alrededor de esa estimación.
+-   **t value:** Estimate dividido Std. Error. Cuanto más lejos de 0, más fuerte la evidencia contra H₀.
+-   **Pr(\>\|t\|):** el p-valor. Cuanto más chico, más evidencia de que el efecto no es puro azar.
+
+## ¿Qué es un p-valor, en criollo?
+
+Este es uno de los conceptos que más se olvidan y más se necesitan, así que vale la pena pararse un momento.
+
+El p-valor responde a esta pregunta: **si en la población real el ingreso no tuviera ningún efecto sobre el gasto (si H₀ fuera cierta), ¿qué tan raro sería encontrar, solo por azar, una relación tan fuerte como la que encontramos en esta muestra de clientes?**
+
+-   Si esa relación sería *muy rara* de encontrar por puro azar (p-valor bajo), sospechamos que el efecto es real: **rechazamos H₀**.
+-   Si esa relación *no sería tan rara* de encontrar por azar (p-valor alto), no tenemos evidencia suficiente para descartar que sea casualidad: **no rechazamos H₀**.
+
+El umbral convencional (el "alfa") es 0,05. Es decir: si la probabilidad de ver esto por puro azar es menor al 5%, lo consideramos "estadísticamente significativo".
+
+::: callout-warning
+El p-valor **no** te dice qué tan grande o importante es el efecto, ni te dice la probabilidad de que H₀ sea verdadera. Solo te dice qué tan compatibles son tus datos con la idea de que no hay efecto. Son cosas distintas y es un error muy común confundirlas.
+:::
+
+## Intervalo de confianza
+
+El coeficiente que nos da R (el `Estimate`) es una sola estimación puntual, calculada sobre esta muestra en particular. Si tomáramos otra muestra de clientes, el número iba a salir levemente distinto. El intervalo de confianza nos da un **rango de valores plausibles** para el verdadero efecto en toda la población de clientes, no solo en esta muestra.
+
+```{r}
+confint(modelo_simple)
+```
+
+Si trabajás con un 95% de confianza (el default), lo leemos así: "si repitiéramos este mismo estudio muchas veces, en el 95% de los casos el intervalo que se construye de esta manera contendría el verdadero efecto poblacional".
+
+Es un complemento natural del p-valor: el p-valor te dice si hay evidencia de un efecto, el intervalo te dice **con qué margen** podés hablar de ese efecto en un informe.
+
+## R² y R² ajustado
+
+-   **R²:** qué porcentaje de la variación del gasto con tarjeta queda explicado por el ingreso mensual. Va de 0 a 1 (o de 0% a 100%).
+-   **R² ajustado:** lo mismo, pero corregido para que agregar variables "porque sí" no infle artificialmente el número. Cuando comparás modelos con distinta cantidad de variables, mirá siempre el ajustado.
+
+```{r}
+broom::glance(modelo_simple) %>% 
+  select(r.squared, adj.r.squared)
+```
+
+::: callout-tip
+Un R² alto no es sinónimo de "buen modelo" ni un R² bajo de "mal modelo". Depende muchísimo del fenómeno que estés estudiando. En ciencias sociales, un R² de 0,3 en un fenómeno complejo puede ser perfectamente respetable.
+:::
+
+## Ejercicio 1
+
+Reemplazá `ingreso_mensual` por `antiguedad_cliente` como variable explicativa del gasto con tarjeta.
+
+1.  Hacé el gráfico de dispersión.
+2.  Calculá la correlación.
+3.  Ajustá el modelo y mirá el `summary()`.
+4.  Respondé: ¿el efecto es significativo? ¿Cuánto vale el R²? ¿Cómo lo explicarías en una oración para alguien que no sabe estadística?
+
+```{r}
+# tu código acá
+
+```
+
+::: {.callout-tip collapse="true"}
+## Ver una posible solución
+
+```{r}
+#| eval: false
+clientes %>% 
+  ggplot(aes(x = antiguedad_cliente, y = gasto_tarjeta_mensual)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm")
+
+cor(clientes$antiguedad_cliente, clientes$gasto_tarjeta_mensual)
+
+modelo_antiguedad <- lm(gasto_tarjeta_mensual ~ antiguedad_cliente, data = clientes)
+summary(modelo_antiguedad)
+```
+
+Con estos datos simulados el efecto suele ser significativo (p-valor bajo) pero el R² es bastante más chico que el del modelo con ingreso: la antigüedad ayuda a explicar el gasto, pero mucho menos que el ingreso por sí solo.
+:::
+
+## Supuestos del modelo: ¿podemos confiar en esta regresión lineal?
+
+Igual que antes, un modelo lineal solo es confiable si se cumplen ciertos supuestos sobre los residuos (la diferencia entre lo observado y lo predicho).
+
+### 1) Normalidad de los residuos
+
+Usamos `broom::augment()` para agregarle al dataset original las columnas de valores predichos y residuos, en formato tidy:
+
+```{r}
+modelo_simple_aug <- broom::augment(modelo_simple)
+
+modelo_simple_aug %>% 
+  ggplot(aes(sample = .resid)) +
+  stat_qq() +
+  stat_qq_line() +
+  labs(title = "QQ plot de los residuos")
+```
+
+Y el test formal de Shapiro-Wilk (H₀: los residuos vienen de una distribución normal):
+
+```{r}
+shapiro.test(residuals(modelo_simple))
+```
+
+Si el p-valor es menor a 0,05, hay evidencia de que los residuos no son normales. Con muestras grandes este test es muy sensible a desvíos mínimos, así que conviene mirarlo junto con el QQ plot y no de forma aislada.
+
+### 2) Homocedasticidad (varianza constante de los residuos)
+
+```{r}
+modelo_simple_aug %>% 
+  ggplot(aes(x = .fitted, y = .resid)) +
+  geom_point(alpha = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residuos vs. valores predichos",
+       x = "Valores predichos",
+       y = "Residuos")
+```
+
+Buscamos una nube de puntos sin forma (sin embudo, sin curva). Y el test de Breusch-Pagan (H₀: hay homocedasticidad):
+
+```{r}
+lmtest::bptest(modelo_simple)
+```
+
+::: callout-note
+Si veníamos usando `olsrr` para estos gráficos (`ols_plot_resid_qq()`, `ols_plot_resid_stud_fit()`), sigue siendo una opción totalmente válida. Acá usamos `broom::augment()` porque se integra mejor con el flujo tidyverse, pero ambos caminos llegan al mismo lugar.
+:::
+
+## Regresión múltiple: sumamos variables
+
+Vamos a incorporar más de una variable explicativa al mismo tiempo.
+
+### La trampa de las "variables espejo" (multicolinealidad)
+
+En el dataset armamos a propósito `limite_credito` como una función casi directa de `ingreso_mensual` (así suele pasar en la vida real: el banco calcula el límite en base al ingreso declarado). Veamos qué pasa si metemos las dos en el mismo modelo:
+
+```{r}
+cor(clientes$ingreso_mensual, clientes$limite_credito)
+```
+
+```{r}
+modelo_colineal <- lm(gasto_tarjeta_mensual ~ ingreso_mensual + limite_credito, data = clientes)
+
+summary(modelo_colineal)
+```
+
+```{r}
+car::vif(modelo_colineal)
+```
+
+Un VIF muy por encima de 10 (¡o incluso valores extremos!) confirma lo que sospechábamos: estamos preguntándole al modelo casi lo mismo dos veces. Cuando eso pasa, los coeficientes individuales se vuelven inestables y difíciles de interpretar, aunque el modelo en conjunto siga "funcionando" bien en términos de predicción.
+
+**La solución:** sacamos una de las dos variables redundantes.
+
+```{r}
+modelo_multiple <- lm(gasto_tarjeta_mensual ~ ingreso_mensual + antiguedad_cliente, data = clientes)
+
+summary(modelo_multiple)
+```
+
+```{r}
+car::vif(modelo_multiple)
+```
+
+Con VIF cercanos a 1, no hay problema de colinealidad relevante entre `ingreso_mensual` y `antiguedad_cliente`.
+
+## Ejercicio 2
+
+Armá tu propio modelo múltiple agregando `edad` al modelo anterior (además de `ingreso_mensual` y `antiguedad_cliente`).
+
+1.  Ajustá el modelo y mirá el `summary()`.
+2.  Calculá el VIF de las tres variables. ¿Hay algún problema de colinealidad?
+3.  Compará el R² ajustado de este modelo contra el de `modelo_multiple` (sin edad). ¿Vale la pena sumar `edad`?
+
+```{r}
+# tu código acá
+
+```
+
+::: {.callout-tip collapse="true"}
+## Ver una posible solución
+
+```{r}
+#| eval: false
+modelo_multiple_edad <- lm(gasto_tarjeta_mensual ~ ingreso_mensual + antiguedad_cliente + edad,
+                            data = clientes)
+summary(modelo_multiple_edad)
+car::vif(modelo_multiple_edad)
+
+broom::glance(modelo_multiple)$adj.r.squared
+broom::glance(modelo_multiple_edad)$adj.r.squared
+```
+
+Como en esta simulación `edad` no tiene ningún efecto real sobre el gasto, es esperable que su coeficiente no sea significativo y que el R² ajustado casi no cambie (o incluso baje levemente) al agregarla. Eso es justamente lo que el R² ajustado está hecho para detectar: variables que no suman información real.
+:::
+
+## Variables categóricas: cómo arma R las dummies
+
+Queremos ver si el gasto con tarjeta varía según el `tipo_cuenta` (Clásica, Premium, Digital).
+
+```{r}
+clientes %>% 
+  ggplot(aes(x = tipo_cuenta, y = gasto_tarjeta_mensual, color = tipo_cuenta)) +
+  geom_boxplot() +
+  labs(title = "Gasto con tarjeta según tipo de cuenta",
+       x = "Tipo de cuenta",
+       y = "Gasto mensual con tarjeta")
+```
+
+Antes de modelar, elegimos a propósito cuál categoría va a ser la "base" de comparación, con `forcats::fct_relevel()`. Si no lo hacemos, R elige la primera en orden alfabético, lo cual no siempre es la comparación más útil para el informe.
+
+```{r}
+clientes <- clientes %>% 
+  mutate(tipo_cuenta = fct_relevel(tipo_cuenta, "Clásica"))
+
+modelo_categorico <- lm(gasto_tarjeta_mensual ~ tipo_cuenta, data = clientes)
+
+summary(modelo_categorico)
+```
+
+**¿Cómo lo leemos?**
+
+-   El **Intercept** es el gasto promedio de la categoría base (Clásica).
+-   Cada coeficiente restante (`tipo_cuentaPremium`, `tipo_cuentaDigital`) es la diferencia promedio respecto de esa base, no un valor absoluto.
+
+Por ejemplo, si `tipo_cuentaPremium` da +115, se lee: "en promedio, los/as clientes con cuenta Premium gastan 115 más por mes con la tarjeta que los/as clientes con cuenta Clásica, manteniendo todo lo demás igual".
+
+## Ejercicio 3
+
+Volvé a armar el modelo categórico pero usando `fct_relevel(tipo_cuenta, "Premium")` para que la categoría base sea Premium en lugar de Clásica.
+
+1.  ¿Cambian los coeficientes de las otras categorías? ¿Por qué sí o por qué no?
+2.  ¿Cambia el R²?
+3.  Escribí en una oración la comparación entre cuenta Digital y cuenta Premium.
+
+```{r}
+# tu código acá
+
+```
+
+::: {.callout-tip collapse="true"}
+## Ver una posible solución
+
+```{r}
+#| eval: false
+clientes_relevel <- clientes %>% 
+  mutate(tipo_cuenta = fct_relevel(tipo_cuenta, "Premium"))
+
+modelo_categorico_v2 <- lm(gasto_tarjeta_mensual ~ tipo_cuenta, data = clientes_relevel)
+summary(modelo_categorico_v2)
+```
+
+El R² del modelo no cambia (es el mismo modelo, solo cambia el punto de referencia). Lo que cambia es qué representa cada coeficiente: ahora todo se compara contra Premium en lugar de contra Clásica.
+:::
+
+## Modelo final: combinando variables numéricas y categóricas
+
+```{r}
+modelo_final <- lm(gasto_tarjeta_mensual ~ ingreso_mensual + antiguedad_cliente + tipo_cuenta, 
+                    data = clientes)
+
+broom::tidy(modelo_final)
+```
+
+```{r}
+broom::glance(modelo_final) %>% 
+  select(r.squared, adj.r.squared, p.value)
+```
+
+El `p.value` que devuelve `glance()` es el p-valor **global** del modelo (viene del estadístico F): responde a la pregunta "¿el modelo en su conjunto explica algo, o es equivalente a no tener ninguna variable explicativa?". Es distinto de los p-valores individuales de cada coeficiente, que responden "¿esta variable en particular aporta, dado que las demás ya están en el modelo?".
+
+## Cuatro trampas conceptuales para tener en el radar
+
+Estas no estaban tan desarrolladas la vez pasada y son justo las que más suelen generar líos al leer o presentar un modelo:
+
+1.  **Correlación no es causalidad.** Que el ingreso y el gasto estén correlacionados no prueba que uno *cause* el otro. Podría haber una tercera variable (por ejemplo, el rubro laboral) detrás de ambos. Para hablar de causalidad hacen falta diseños específicos (experimentos, variables instrumentales, etc.), no alcanza con una regresión sobre datos observacionales.
+2.  **Cuidado con extrapolar.** El modelo solo es confiable dentro del rango de datos que usaste para entrenarlo. Si tu muestra tiene ingresos entre \$150 y \$1.500, no uses el modelo para predecir el gasto de alguien con un ingreso de \$50.000: fuera del rango observado, la relación podría no ser lineal (o directamente no existir).
+3.  **Significancia estadística ≠ relevancia práctica.** Con muestras muy grandes (como las que tenemos en nuestros ejemplos con miles o millones de registros), hasta efectos minúsculos y sin ninguna importancia real terminan dando "significativos" (p-valor bajo). Siempre conviene mirar el tamaño del coeficiente, no solo si tiene estrellitas.
+4.  **Multicolinealidad / variables espejo.** Ya lo vimos con `ingreso_mensual` y `limite_credito`: si dos variables están midiendo casi lo mismo, no las metas juntas en el modelo. Revisá el VIF siempre que trabajes con regresión múltiple.
+
+## Ficha resumen para tener a mano
+
+| Qué mirar | En `summary(modelo)` | Qué te dice |
+|-------------------|-------------------------|----------------------------|
+| Efecto de cada variable | columna `Estimate` | tamaño y dirección del efecto |
+| Confiabilidad de la estimación | `Std. Error` y `confint()` | margen de error alrededor del coeficiente |
+| ¿Es significativo? | `Pr(>|t|)` | compará contra 0,05 (o el alfa que hayas elegido) |
+| ¿Qué tanto explica el modelo? | `Multiple R-squared` / `Adjusted R-squared` | \% de variabilidad explicada |
+| ¿El modelo en conjunto sirve? | `F-statistic` y su p-valor | si todas las variables juntas aportan algo |
+| ¿Hay variables redundantes? | `car::vif(modelo)` | valores \> 10 son señal de alerta |
+| ¿Los residuos se comportan bien? | `shapiro.test()`, `lmtest::bptest()`, gráficos de residuos | si se cumplen los supuestos del modelo lineal |
+
+## Ejercicio integrador (para cuando tengas ganas de ir más allá)
+
+Con el dataset `clientes`, armá un mini-informe (puede ser en este mismo Quarto) que responda: **¿qué combinación de variables explica mejor el gasto mensual con tarjeta?**
+
+Se espera que incluya:
+
+-   Un gráfico exploratorio.
+-   Un modelo con al menos dos variables numéricas y una categórica.
+-   El chequeo de VIF.
+-   Una interpretación en lenguaje llano de los 2 o 3 coeficientes más relevantes (pensá que el resultado lo va a leer alguien de negocio, no un/a estadístico/a).
+-   Un párrafo final tipo "conclusión para gerencia", similar al que armamos en la clase anterior con el PBG.
+
+Y cuando quieras dar el salto a datos reales: el flujo de trabajo es exactamente el mismo (explorar → correlacionar → modelo simple → chequear supuestos → modelo múltiple → chequear VIF → variables categóricas → interpretar). Lo único que cambia es `read_excel()` o `read_csv()` en vez de `tibble()` para traer tu base real anonimizada.
+
+## Bibliografía de consulta
+
+-   [Antonio Vazquez Brust - Capítulo 5 Modelado estadístico en "Ciencia de Datos para Gente Sociable"](https://bitsandbricks.github.io/ciencia_de_datos_gente_sociable/modelado-estad%C3%ADstico.html)
+-   [Francisco Urdinez y Andrés Cruz Labrín (Editores) - Capítulo 5 Modelos lineales - en "AnalizaR Datos Políticos"](https://arcruz0.github.io/libroadp/linear.html)
+-   [Análisis Multivariante aplicado con R - Joaquín Aldás y Ezequiel Uriel](https://drive.google.com/file/d/16n2f5edlOkuPqb5EFbu76Th5jfKMx9lT/view?usp=sharing)
+-   [Statistics Done Wrong (cap. sobre p-valores), Alex Reinhart - explicación clásica y muy citada sobre malinterpretaciones comunes del p-valor](https://www.statisticsdonewrong.com/p-value.html)
