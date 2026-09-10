@@ -28,15 +28,15 @@ El dataset que vamos a usar es **inventado** (simulado con código), no son dato
 
 Un modelo es una simplificación de la realidad que nos ayuda a **predecir** o **explicar** una variable.
 
--   **Variable dependiente (y):** lo que queremos explicar o predecir. En nuestros ejemplos: cuánto gasta un/a cliente por mes con su tarjeta.
--   **Variable(s) independiente(s) o explicativas (x):** lo que usamos para explicar esa variable. Por ejemplo: el ingreso mensual, la antigüedad como cliente, el tipo de cuenta.
+- **Variable dependiente (y):** lo que queremos explicar o predecir. En nuestros ejemplos: cuánto gasta un/a cliente por mes con su tarjeta.
+- **Variable(s) independiente(s) o explicativas (x):** lo que usamos para explicar esa variable. Por ejemplo: el ingreso mensual, la antigüedad como cliente, el tipo de cuenta.
 
 La ecuación de siempre:
 
 $$y = a + b \times x$$
 
--   **a (intercept / ordenada al origen):** el valor esperado de y cuando x = 0.
--   **b (pendiente / coeficiente):** cuánto cambia y, en promedio, cuando x aumenta en una unidad.
+- **a (intercept / ordenada al origen):** el valor esperado de y cuando x = 0.
+- **b (pendiente / coeficiente):** cuánto cambia y, en promedio, cuando x aumenta en una unidad.
 
 Con más de una variable explicativa, la misma lógica se extiende:
 
@@ -142,10 +142,10 @@ cor(clientes$ingreso_mensual, clientes$gasto_tarjeta_mensual)
 
 **¿A partir de qué valor consideramos que hay una correlación apreciable?** (esta tabla ya la habíamos visto, la repetimos porque es de consulta constante)
 
--   de 0,7 a 1: de fuerte a total
--   de 0,5 a 0,6: de moderada a fuerte
--   de 0,3 a 0,4: de débil a moderada
--   menor a 0,3: de nula a débil
+- de 0,7 a 1: de fuerte a total
+- de 0,5 a 0,6: de moderada a fuerte
+- de 0,3 a 0,4: de débil a moderada
+- menor a 0,3: de nula a débil
 
 ## Paso 3: el modelo de regresión simple
 
@@ -189,10 +189,10 @@ clientes %>%
 
 Para la fila `ingreso_mensual` del `summary()`:
 
--   **Estimate:** por cada peso adicional de ingreso mensual, el gasto con tarjeta aumenta, en promedio, en esa cantidad.
--   **Std. Error:** el margen de "ruido" alrededor de esa estimación.
--   **t value:** Estimate dividido Std. Error. Cuanto más lejos de 0, más fuerte la evidencia contra H₀.
--   **Pr(\>\|t\|):** el p-valor. Cuanto más chico, más evidencia de que el efecto no es puro azar.
+- **Estimate:** por cada peso adicional de ingreso mensual, el gasto con tarjeta aumenta, en promedio, en esa cantidad.
+- **Std. Error:** el margen de "ruido" alrededor de esa estimación.
+- **t value:** Estimate dividido Std. Error. Cuanto más lejos de 0, más fuerte la evidencia contra H₀.
+- **Pr(\>\|t\|):** el p-valor. Cuanto más chico, más evidencia de que el efecto no es puro azar.
 
 ## ¿Qué es un p-valor, en criollo?
 
@@ -200,8 +200,8 @@ Este es uno de los conceptos que más se olvidan y más se necesitan, así que v
 
 El p-valor responde a esta pregunta: **si en la población real el ingreso no tuviera ningún efecto sobre el gasto (si H₀ fuera cierta), ¿qué tan raro sería encontrar, solo por azar, una relación tan fuerte como la que encontramos en esta muestra de clientes?**
 
--   Si esa relación sería *muy rara* de encontrar por puro azar (p-valor bajo), sospechamos que el efecto es real: **rechazamos H₀**.
--   Si esa relación *no sería tan rara* de encontrar por azar (p-valor alto), no tenemos evidencia suficiente para descartar que sea casualidad: **no rechazamos H₀**.
+- Si esa relación sería *muy rara* de encontrar por puro azar (p-valor bajo), sospechamos que el efecto es real: **rechazamos H₀**.
+- Si esa relación *no sería tan rara* de encontrar por azar (p-valor alto), no tenemos evidencia suficiente para descartar que sea casualidad: **no rechazamos H₀**.
 
 El umbral convencional (el "alfa") es 0,05. Es decir: si la probabilidad de ver esto por puro azar es menor al 5%, lo consideramos "estadísticamente significativo".
 
@@ -223,8 +223,8 @@ Es un complemento natural del p-valor: el p-valor te dice si hay evidencia de un
 
 ## R² y R² ajustado
 
--   **R²:** qué porcentaje de la variación del gasto con tarjeta queda explicado por el ingreso mensual. Va de 0 a 1 (o de 0% a 100%).
--   **R² ajustado:** lo mismo, pero corregido para que agregar variables "porque sí" no infle artificialmente el número. Cuando comparás modelos con distinta cantidad de variables, mirá siempre el ajustado.
+- **R²:** qué porcentaje de la variación del gasto con tarjeta queda explicado por el ingreso mensual. Va de 0 a 1 (o de 0% a 100%).
+- **R² ajustado:** lo mismo, pero corregido para que agregar variables "porque sí" no infle artificialmente el número. Cuando comparás modelos con distinta cantidad de variables, mirá siempre el ajustado.
 
 ```{r}
 broom::glance(modelo_simple) %>% 
@@ -410,8 +410,8 @@ summary(modelo_categorico)
 
 **¿Cómo lo leemos?**
 
--   El **Intercept** es el gasto promedio de la categoría base (Clásica).
--   Cada coeficiente restante (`tipo_cuentaPremium`, `tipo_cuentaDigital`) es la diferencia promedio respecto de esa base, no un valor absoluto.
+- El **Intercept** es el gasto promedio de la categoría base (Clásica).
+- Cada coeficiente restante (`tipo_cuentaPremium`, `tipo_cuentaDigital`) es la diferencia promedio respecto de esa base, no un valor absoluto.
 
 Por ejemplo, si `tipo_cuentaPremium` da +115, se lee: "en promedio, los/as clientes con cuenta Premium gastan 115 más por mes con la tarjeta que los/as clientes con cuenta Clásica, manteniendo todo lo demás igual".
 
@@ -486,17 +486,17 @@ Con el dataset `clientes`, armá un mini-informe (puede ser en este mismo Quarto
 
 Se espera que incluya:
 
--   Un gráfico exploratorio.
--   Un modelo con al menos dos variables numéricas y una categórica.
--   El chequeo de VIF.
--   Una interpretación en lenguaje llano de los 2 o 3 coeficientes más relevantes (pensá que el resultado lo va a leer alguien de negocio, no un/a estadístico/a).
--   Un párrafo final tipo "conclusión para gerencia", similar al que armamos en la clase anterior con el PBG.
+- Un gráfico exploratorio.
+- Un modelo con al menos dos variables numéricas y una categórica.
+- El chequeo de VIF.
+- Una interpretación en lenguaje llano de los 2 o 3 coeficientes más relevantes (pensá que el resultado lo va a leer alguien de negocio, no un/a estadístico/a).
+- Un párrafo final tipo "conclusión para gerencia", similar al que armamos en la clase anterior con el PBG.
 
 Y cuando quieras dar el salto a datos reales: el flujo de trabajo es exactamente el mismo (explorar → correlacionar → modelo simple → chequear supuestos → modelo múltiple → chequear VIF → variables categóricas → interpretar). Lo único que cambia es `read_excel()` o `read_csv()` en vez de `tibble()` para traer tu base real anonimizada.
 
 ## Bibliografía de consulta
 
--   [Antonio Vazquez Brust - Capítulo 5 Modelado estadístico en "Ciencia de Datos para Gente Sociable"](https://bitsandbricks.github.io/ciencia_de_datos_gente_sociable/modelado-estad%C3%ADstico.html)
--   [Francisco Urdinez y Andrés Cruz Labrín (Editores) - Capítulo 5 Modelos lineales - en "AnalizaR Datos Políticos"](https://arcruz0.github.io/libroadp/linear.html)
--   [Análisis Multivariante aplicado con R - Joaquín Aldás y Ezequiel Uriel](https://drive.google.com/file/d/16n2f5edlOkuPqb5EFbu76Th5jfKMx9lT/view?usp=sharing)
--   [Statistics Done Wrong (cap. sobre p-valores), Alex Reinhart - explicación clásica y muy citada sobre malinterpretaciones comunes del p-valor](https://www.statisticsdonewrong.com/p-value.html)
+- [Antonio Vazquez Brust - Capítulo 5 Modelado estadístico en "Ciencia de Datos para Gente Sociable"](https://bitsandbricks.github.io/ciencia_de_datos_gente_sociable/modelado-estad%C3%ADstico.html)
+- [Francisco Urdinez y Andrés Cruz Labrín (Editores) - Capítulo 5 Modelos lineales - en "AnalizaR Datos Políticos"](https://arcruz0.github.io/libroadp/linear.html)
+- [Análisis Multivariante aplicado con R - Joaquín Aldás y Ezequiel Uriel](https://drive.google.com/file/d/16n2f5edlOkuPqb5EFbu76Th5jfKMx9lT/view?usp=sharing)
+- [Statistics Done Wrong (cap. sobre p-valores), Alex Reinhart - explicación clásica y muy citada sobre malinterpretaciones comunes del p-valor](https://www.statisticsdonewrong.com/p-value.html)
