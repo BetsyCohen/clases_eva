@@ -607,5 +607,75 @@
     "title": "Clases R - Eva Arias",
     "section": "",
     "text": "Este es el sitio de mis clases particulares de R."
+  },
+  {
+    "objectID": "clases/09_wordclouds.html",
+    "href": "clases/09_wordclouds.html",
+    "title": "Análisis de respuestas abiertas y nubes de palabras",
+    "section": "",
+    "text": "En esta clase vamos a aprender a:\n\nTransformar una variable de respuestas múltiples en una tabla de frecuencias.\nProcesar respuestas abiertas mediante técnicas básicas de análisis de texto.\nCrear un corpus de texto y eliminar palabras vacías (stopwords) en español.\nConstruir nubes de palabras estáticas e interactivas.\n\nTrabajaremos con una encuesta ficticia sobre productos financieros."
+  },
+  {
+    "objectID": "clases/09_wordclouds.html#separar-los-temas",
+    "href": "clases/09_wordclouds.html#separar-los-temas",
+    "title": "Análisis de respuestas abiertas y nubes de palabras",
+    "section": "3.1. Separar los temas",
+    "text": "3.1. Separar los temas\nUsamos separate_rows() para convertir cada tema en una fila independiente.\n\ntemas &lt;- encuesta |&gt;\n  select(Sexo, Edad, Municipio, Producto, Verbatims) |&gt;\n  separate_rows(Verbatims, sep = \",\\\\s*\") |&gt;\n  rename(tema = Verbatims)\n\ntemas\n\n# A tibble: 21 × 5\n   Sexo   Edad Municipio Producto tema            \n   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt;    &lt;chr&gt;           \n 1 F        45 La Plata  Tarjeta  Disponibilidad  \n 2 F        45 La Plata  Tarjeta  Facilidad de uso\n 3 M        32 La Plata  Tarjeta  Disponibilidad  \n 4 M        32 La Plata  Tarjeta  Aceptación      \n 5 F        28 Berisso   Cuenta   Facilidad de uso\n 6 F        28 Berisso   Cuenta   Aplicación      \n 7 M        51 Ensenada  Tarjeta  Facilidad de uso\n 8 M        51 Ensenada  Tarjeta  Seguridad       \n 9 M        51 Ensenada  Tarjeta  Disponibilidad  \n10 F        39 La Plata  Cuenta   Facilidad de uso\n# ℹ 11 more rows\n\n\nPor ejemplo, una persona que mencionó “Disponibilidad, Facilidad de uso” pasa a tener dos filas.\nEsta estructura se conoce como formato largo y facilita el cálculo de frecuencias."
+  },
+  {
+    "objectID": "clases/09_wordclouds.html#calcular-frecuencias-y-porcentajes",
+    "href": "clases/09_wordclouds.html#calcular-frecuencias-y-porcentajes",
+    "title": "Análisis de respuestas abiertas y nubes de palabras",
+    "section": "3.2. Calcular frecuencias y porcentajes",
+    "text": "3.2. Calcular frecuencias y porcentajes\n\nfrecuencias_temas &lt;- temas |&gt;\n  count(tema, name = \"frecuencia\", sort = TRUE) |&gt;\n  mutate(\n    porcentaje_encuestados =\n      frecuencia / nrow(encuesta) * 100\n  )\n\nfrecuencias_temas\n\n# A tibble: 7 × 3\n  tema             frecuencia porcentaje_encuestados\n  &lt;chr&gt;                 &lt;int&gt;                  &lt;dbl&gt;\n1 Facilidad de uso          6                     60\n2 Disponibilidad            4                     40\n3 Aplicación                3                     30\n4 Aceptación                2                     20\n5 Descuentos                2                     20\n6 Información               2                     20\n7 Seguridad                 2                     20\n\n\nLa frecuencia indica cuántas personas mencionaron cada tema.\nEl porcentaje se calcula sobre el total de encuestados. Como una persona puede mencionar varios temas, los porcentajes pueden sumar más de 100%.\nEsta es una tabla de respuestas múltiples, siguiendo la lógica de la clase 7: respuestas múltiples."
+  },
+  {
+    "objectID": "clases/09_wordclouds.html#visualizar-los-temas-más-mencionados",
+    "href": "clases/09_wordclouds.html#visualizar-los-temas-más-mencionados",
+    "title": "Análisis de respuestas abiertas y nubes de palabras",
+    "section": "3.3. Visualizar los temas más mencionados",
+    "text": "3.3. Visualizar los temas más mencionados\n\nfrecuencias_temas |&gt;\n  ggplot(aes(\n    x = reorder(tema, frecuencia),\n    y = frecuencia\n  )) +\n  geom_col(fill = \"#2878B5\") +\n  coord_flip() +\n  labs(\n    title = \"Temas mencionados por los encuestados\",\n    x = NULL,\n    y = \"Cantidad de menciones\"\n  ) +\n  theme_minimal()"
+  },
+  {
+    "objectID": "clases/09_wordclouds.html#comparar-por-producto",
+    "href": "clases/09_wordclouds.html#comparar-por-producto",
+    "title": "Análisis de respuestas abiertas y nubes de palabras",
+    "section": "3.4. Comparar por producto",
+    "text": "3.4. Comparar por producto\nEsta comparación permite explorar si los temas mencionados difieren entre productos.\n\ntemas |&gt;\n  count(Producto, tema, name = \"frecuencia\") |&gt;\n  ggplot(aes(\n    x = reorder(tema, frecuencia),\n    y = frecuencia,\n    fill = Producto\n  )) +\n  geom_col(position = \"dodge\") +\n  coord_flip() +\n  labs(\n    title = \"Temas mencionados según producto\",\n    x = NULL,\n    y = \"Cantidad de menciones\",\n    fill = \"Producto\"\n  ) +\n  theme_minimal()"
+  },
+  {
+    "objectID": "clases/09_wordclouds.html#preparar-los-documentos",
+    "href": "clases/09_wordclouds.html#preparar-los-documentos",
+    "title": "Análisis de respuestas abiertas y nubes de palabras",
+    "section": "4.1. Preparar los documentos",
+    "text": "4.1. Preparar los documentos\nCada respuesta será un documento identificado mediante id.\n\ndocumentos &lt;- encuesta |&gt;\n  mutate(\n    id = row_number(),\n    texto = Que_le_gusta\n  ) |&gt;\n  select(id, Producto, texto)\n\ndocumentos\n\n# A tibble: 10 × 3\n      id Producto texto                                                         \n   &lt;int&gt; &lt;chr&gt;    &lt;chr&gt;                                                         \n 1     1 Tarjeta  Me gusta la tarjeta Visa porque está en todos los negocios y …\n 2     2 Tarjeta  Puedo pagar en muchos comercios y no tengo problemas para com…\n 3     3 Cuenta   La aplicación es sencilla y puedo consultar mi saldo rápidame…\n 4     4 Tarjeta  Es práctica, segura y la aceptan en casi todos lados          \n 5     5 Cuenta   Me resulta fácil de usar y puedo ver todos mis movimientos    \n 6     6 Tarjeta  La uso para comprar en comercios y aprovechar descuentos      \n 7     7 Cuenta   La aplicación funciona rápido y es muy práctica               \n 8     8 Tarjeta  Me gusta que sea segura y aceptada en muchos negocios         \n 9     9 Tarjeta  Puedo comprar fácilmente y acceder a promociones              \n10    10 Cuenta   La información de mis gastos está disponible en la aplicación"
+  },
+  {
+    "objectID": "clases/09_wordclouds.html#crear-el-corpus-con-tm",
+    "href": "clases/09_wordclouds.html#crear-el-corpus-con-tm",
+    "title": "Análisis de respuestas abiertas y nubes de palabras",
+    "section": "4.2. Crear el corpus con tm",
+    "text": "4.2. Crear el corpus con tm\nUn corpus es una colección de documentos de texto que podemos procesar de manera conjunta, lo que en socio identificábamos como texto único.\n\ncorpus &lt;- VCorpus(\n  VectorSource(documentos$texto)\n)\n\ninspect(corpus[1:2])\n\n&lt;&lt;VCorpus&gt;&gt;\nMetadata:  corpus specific: 0, document level (indexed): 0\nContent:  documents: 2\n\n[[1]]\n&lt;&lt;PlainTextDocument&gt;&gt;\nMetadata:  7\nContent:  chars: 77\n\n[[2]]\n&lt;&lt;PlainTextDocument&gt;&gt;\nMetadata:  7\nContent:  chars: 65\n\n\nAhora aplicamos algunas operaciones básicas de limpieza al corpus con la librería tm:\n\ncorpus_limpio &lt;- corpus |&gt;\n  tm_map(content_transformer(tolower)) |&gt;\n  tm_map(removePunctuation) |&gt;\n  tm_map(removeNumbers) |&gt;\n  tm_map(stripWhitespace)\n\ninspect(corpus_limpio[1:2])\n\n&lt;&lt;VCorpus&gt;&gt;\nMetadata:  corpus specific: 0, document level (indexed): 0\nContent:  documents: 2\n\n[[1]]\n&lt;&lt;PlainTextDocument&gt;&gt;\nMetadata:  7\nContent:  chars: 77\n\n[[2]]\n&lt;&lt;PlainTextDocument&gt;&gt;\nMetadata:  7\nContent:  chars: 65\n\n\n¿Qué hicimos?\n\ntolower(): pasamos todo a minúsculas.\nremovePunctuation(): eliminamos signos de puntuación.\nremoveNumbers(): eliminamos números.\nstripWhitespace(): reducimos espacios innecesarios.\n\nLa limpieza facilita que una palabra no quede duplicada por diferencias de mayúsculas o puntuación."
+  },
+  {
+    "objectID": "clases/09_wordclouds.html#obtener-las-stopwords-en-español",
+    "href": "clases/09_wordclouds.html#obtener-las-stopwords-en-español",
+    "title": "Análisis de respuestas abiertas y nubes de palabras",
+    "section": "4.3. Obtener las stopwords en español",
+    "text": "4.3. Obtener las stopwords en español\nLas stopwords son palabras frecuentes que suelen aportar poco para distinguir los temas del texto, como “de”, “la”, “que”, “y” o “en”.\nPodemos obtener una lista en español con tm:\n\nstop_es &lt;- tm::stopwords(\"spanish\")\n\nhead(stop_es, 30)\n\n [1] \"de\"     \"la\"     \"que\"    \"el\"     \"en\"     \"y\"      \"a\"      \"los\"   \n [9] \"del\"    \"se\"     \"las\"    \"por\"    \"un\"     \"para\"   \"con\"    \"no\"    \n[17] \"una\"    \"su\"     \"al\"     \"lo\"     \"como\"   \"más\"    \"pero\"   \"sus\"   \n[25] \"le\"     \"ya\"     \"o\"      \"este\"   \"sí\"     \"porque\"\n\n\nLa lista puede variar según la versión del paquete y no siempre incluye todas las expresiones que queremos excluir.\nPodemos ampliarla con palabras propias de nuestro problema:\n\nstop_es &lt;- unique(c(\n  stop_es,\n  \"me\", \"gusta\", \"gustan\",\n  \"porque\", \"puedo\", \"puede\",\n  \"tengo\", \"tiene\", \"todos\",\n  \"todo\", \"muy\", \"resulta\",\n  \"usar\", \"uso\"\n))\n\nEn un análisis real, conviene revisar las respuestas y adaptar esta lista al lenguaje de los encuestados. No deberíamos eliminar automáticamente palabras relevantes para el objetivo de investigación."
+  },
+  {
+    "objectID": "clases/09_wordclouds.html#eliminar-stopwords-del-corpus",
+    "href": "clases/09_wordclouds.html#eliminar-stopwords-del-corpus",
+    "title": "Análisis de respuestas abiertas y nubes de palabras",
+    "section": "4.4. Eliminar stopwords del corpus",
+    "text": "4.4. Eliminar stopwords del corpus\n\ncorpus_sin_stopwords &lt;- tm_map(\n  corpus_limpio,\n  removeWords,\n  stop_es\n)\n\ninspect(corpus_sin_stopwords[1:2])\n\n&lt;&lt;VCorpus&gt;&gt;\nMetadata:  corpus specific: 0, document level (indexed): 0\nContent:  documents: 2\n\n[[1]]\n&lt;&lt;PlainTextDocument&gt;&gt;\nMetadata:  7\nContent:  chars: 39\n\n[[2]]\n&lt;&lt;PlainTextDocument&gt;&gt;\nMetadata:  7\nContent:  chars: 40\n\n\nPodemos inspeccionar cómo quedó una respuesta antes y después de la limpieza:\n\ncat(\"Texto original:\\n\")\n\nTexto original:\n\ncat(documentos$texto[1], \"\\n\\n\")\n\nMe gusta la tarjeta Visa porque está en todos los negocios y es fácil de usar \n\ncat(\"Texto procesado:\\n\")\n\nTexto procesado:\n\ncat(as.character(corpus_sin_stopwords[[1]]))\n\n   tarjeta visa      negocios   fácil"
+  },
+  {
+    "objectID": "clases/09_wordclouds.html#pasar-el-corpus-a-formato-tidy",
+    "href": "clases/09_wordclouds.html#pasar-el-corpus-a-formato-tidy",
+    "title": "Análisis de respuestas abiertas y nubes de palabras",
+    "section": "4.5. Pasar el corpus a formato tidy",
+    "text": "4.5. Pasar el corpus a formato tidy\ntidytext permite convertir el corpus en una tabla donde cada fila representa una palabra.\n\n# Convertir el corpus en un tibble con un documento por fila\ndocumentos_limpios &lt;- tibble(\n  id = seq_along(corpus_sin_stopwords),\n  texto = sapply(\n    corpus_sin_stopwords,\n    tm::content,\n    USE.NAMES = FALSE\n  )\n)\n\n# Separar el texto en palabras\npalabras &lt;- documentos_limpios |&gt;\n  unnest_tokens(\n    output = word,\n    input = texto\n  ) |&gt;\n  mutate(word = str_to_lower(word)) |&gt;\n  filter(\n    str_detect(word, \"^[[:alpha:]]+$\"),\n    !word %in% stop_es,\n    str_length(word) &gt; 2\n  )\n\npalabras\n\n# A tibble: 40 × 2\n      id word      \n   &lt;int&gt; &lt;chr&gt;     \n 1     1 tarjeta   \n 2     1 visa      \n 3     1 negocios  \n 4     1 fácil     \n 5     2 pagar     \n 6     2 comercios \n 7     2 problemas \n 8     2 comprar   \n 9     3 aplicación\n10     3 sencilla  \n# ℹ 30 more rows\n\n\n¿Qué es lo que hacemos en estos pasos? sapply() extrae el texto de cada documento sin necesidad de crear una función especial. unnest_tokens() separa cada respuesta en palabras. filter() elimina stopwords y términos que no cumplen los criterios de limpieza.\nEsto convierte el texto en una estructura tabular que podemos analizar con dplyr como cualquier otra tabla de la vida."
   }
 ]

@@ -24,7 +24,9 @@ website:
         - href: clases/07_respuestas_multiples.qmd
           text: Respuestas multiples
         - href: clases/03_repaso_regresiones_lineales.qmd
-          text: Repaso regresiones lineales   
+          text: Repaso regresiones lineales
+        - href: 09_wordclouds.qmd
+          text: Nubes de palabras
       - href: recursos.qmd
         text: Recursos
       - href: about.qmd
