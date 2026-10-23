@@ -27,9 +27,9 @@ También existe un tercer tipo de algoritmo que llamamos **Aprendizaje por refue
 
 "Dentro del aprendizaje supervisado, como mencionamos, tenemos dos tipos principales de problemas:
 
--   **Problemas de clasificación:** Necesitan predecir la clase más probable de un elemento, en función de un conjunto de variables de entrada. Para este tipo de algoritmos, la variable *target* o respuesta es una variable de tipo categórica. Por ejemplo, clasificar un correo como 'spam' o 'no spam', o determinar si la solicitud de un crédito será 'aprobada' o 'rechazada'.
+- **Problemas de clasificación:** Necesitan predecir la clase más probable de un elemento, en función de un conjunto de variables de entrada. Para este tipo de algoritmos, la variable *target* o respuesta es una variable de tipo categórica. Por ejemplo, clasificar un correo como 'spam' o 'no spam', o determinar si la solicitud de un crédito será 'aprobada' o 'rechazada'.
 
--   **Problemas de regresión:** En vez de predecir categorías, predicen valores numéricos. Es decir, la variable *target* en un problema de regresión es de tipo cuantitativa. Por ejemplo, predecir el precio de una casa en función de sus características, o estimar las ventas futuras de un producto."
+- **Problemas de regresión:** En vez de predecir categorías, predicen valores numéricos. Es decir, la variable *target* en un problema de regresión es de tipo cuantitativa. Por ejemplo, predecir el precio de una casa en función de sus características, o estimar las ventas futuras de un producto."
 
 ### Regresión lineal
 
@@ -37,9 +37,9 @@ Un ejemplo que ya habíamos visto son las regresiones lineales
 
 ![](img/clase_3_linear_regression.gif)
 
--   Busca una ecuación lineal que describe mejor la correlación de la variable independiente con la variable dependiente
+- Busca una ecuación lineal que describe mejor la correlación de la variable independiente con la variable dependiente
 
--   Minimiza la diferencia entre los valores reales, por ejemplo, los precios de las casas, y los valores que predice la línea. En otras palabras, intenta encontrar una línea que represente la tendencia general en los datos
+- Minimiza la diferencia entre los valores reales, por ejemplo, los precios de las casas, y los valores que predice la línea. En otras palabras, intenta encontrar una línea que represente la tendencia general en los datos
 
 ## Aprendizaje no supervisado: clusters
 
@@ -55,37 +55,37 @@ Máxima variabilidad inter-cluster mínima variabiliidad intra-cluster
 
 ## ¿Cuándo tiene sentido aplicar clustering?
 
--   Cuando tenemos variables numéricas o fácilmente comparables
+- Cuando tenemos variables numéricas o fácilmente comparables
 
--   Edad, ingresos, precios, ratings.
+- Edad, ingresos, precios, ratings.
 
--   También pueden usarse variables categóricas, pero requieren técnicas específicas (y más avanzadas).
+- También pueden usarse variables categóricas, pero requieren técnicas específicas (y más avanzadas).
 
--   Cuando hay sospecha de que hay subgrupos ocultos
+- Cuando hay sospecha de que hay subgrupos ocultos
 
--   No están explícitos, pero queremos descubrirlos.
+- No están explícitos, pero queremos descubrirlos.
 
--   Ej: "no sabemos qué tipos de usuarios hay, pero intuimos que no son todos iguales".
+- Ej: "no sabemos qué tipos de usuarios hay, pero intuimos que no son todos iguales".
 
--   Cuando hay suficientes observaciones
+- Cuando hay suficientes observaciones
 
--   Con 5 o 10 filas no tiene sentido.
+- Con 5 o 10 filas no tiene sentido.
 
--   Recomendación mínima: al menos 30-40 casos.
+- Recomendación mínima: al menos 30-40 casos.
 
--   Cuando las variables están en escalas comparables
+- Cuando las variables están en escalas comparables
 
--   Edad y salarios pueden tener rangos muy distintos → hay que escalar o normalizar.
+- Edad y salarios pueden tener rangos muy distintos → hay que escalar o normalizar.
 
 ## ¿Cuándo no aplicar clustering?
 
--   Si ya tenés etiquetas o categorías claras (usá clasificación).
+- Si ya tenés etiquetas o categorías claras (usá clasificación).
 
--   Si los datos no tienen sentido comparativo (textos crudos, fotos, etc.).
+- Si los datos no tienen sentido comparativo (textos crudos, fotos, etc.).
 
--   Si hay muchas variables irrelevantes o ruidosas.
+- Si hay muchas variables irrelevantes o ruidosas.
 
--   Si sólo hay una variable: clustering multi-dimensional necesita más de una dimensión
+- Si sólo hay una variable: clustering multi-dimensional necesita más de una dimensión
 
 ::: callout-tip
 Antes de aplicar clustering, mirá los datos: ¿tiene sentido agrupar? ¿qué variables elegirías? ¿las escalas son comparables?
